@@ -7,6 +7,7 @@ use App\Models\Disease;
 use App\Models\Municipality;
 use App\Models\Barangay;
 use App\Models\Facility;
+use App\Services\OutbreakAlertService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -28,21 +29,27 @@ class CaseReportController extends Controller
             // Encoders see only their own reports
             $query->where('reported_by', $user->id);
         } elseif ($user->hasRole('validator')) {
-            // Validators see all reports from their facility (except drafts)
+            // Validators see reports from their facility (except drafts)
             if ($user->facility_id) {
                 $query->where('reporting_facility_id', $user->facility_id)
                       ->whereIn('status', ['submitted', 'validated', 'returned', 'approved']);
+            } else {
+                // If validator has no facility, show no reports
+                $query->where('id', 0);
             }
+        } elseif ($user->hasRole('pesu_admin')) {
+            // PESU Admin sees all reports but can filter by municipality
+            if ($request->municipality_id) {
+                $query->where('municipality_id', $request->municipality_id);
+            }
+        } else {
+            // Default: no access
+            $query->where('id', 0);
         }
-        // PESU Admin sees all reports
 
-        // Apply filters
+        // Apply additional filters (available to all roles based on their data scope)
         if ($request->disease_id) {
             $query->where('disease_id', $request->disease_id);
-        }
-
-        if ($request->municipality_id) {
-            $query->where('municipality_id', $request->municipality_id);
         }
 
         if ($request->status) {
@@ -63,15 +70,21 @@ class CaseReportController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        // Get filter options
+        // Get filter options based on user role
         $diseases = Disease::where('is_active', true)->orderBy('name')->get();
-        $municipalities = Municipality::orderBy('name')->get();
+
+        // Municipality filter only for PESU Admin
+        $municipalities = collect([]);
+        if ($user->hasRole('pesu_admin')) {
+            $municipalities = Municipality::orderBy('name')->get();
+        }
 
         return Inertia::render('CaseReports/Index', [
             'caseReports' => $caseReports,
             'diseases' => $diseases,
             'municipalities' => $municipalities,
             'filters' => $request->only(['disease_id', 'municipality_id', 'status', 'date_from', 'date_to']),
+            'userRole' => $user->roles->pluck('name')->first(), // Send user role to frontend
         ]);
     }
 
@@ -80,6 +93,8 @@ class CaseReportController extends Controller
      */
     public function create()
     {
+        $user = Auth::user();
+
         $diseases = Disease::where('is_active', true)->orderBy('category')->orderBy('name')->get();
         $municipalities = Municipality::orderBy('name')->get();
         $barangays = Barangay::orderBy('name')->get();
@@ -90,6 +105,11 @@ class CaseReportController extends Controller
             'municipalities' => $municipalities,
             'barangays' => $barangays,
             'facilities' => $facilities,
+            'userMunicipality' => $user->municipality, // Pass user's municipality
+            'userRole' => $user->roles->pluck('name')->first(), // Pass user role
+            'userName' => $user->name, // Pass user's name for health worker field
+            'userPosition' => $user->position, // Pass user's position for designation field
+            'userContact' => $user->contact_number, // Pass user's contact for health worker contact field
         ]);
     }
 
@@ -278,6 +298,12 @@ class CaseReportController extends Controller
             'new_values' => $caseReport->toArray(),
         ]);
 
+        // Check for automatic outbreak alerts if case is submitted
+        if ($status === 'submitted') {
+            $alertService = new OutbreakAlertService();
+            $alertService->checkAndGenerateAlerts($caseReport->disease_id, $caseReport->municipality_id);
+        }
+
         // Redirect with success message
         $message = $status === 'submitted'
             ? 'Case report submitted successfully. Case ID: ' . $caseReport->case_id
@@ -300,11 +326,21 @@ class CaseReportController extends Controller
             'reportingFacility'
         ])->findOrFail($id);
 
-        // Check authorization
+        // Check authorization based on user role
         $user = Auth::user();
-        if ($user->hasRole('encoder') && $caseReport->reported_by !== $user->id) {
-            abort(403, 'Unauthorized access to this case report.');
+
+        if ($user->hasRole('encoder')) {
+            // Encoders can only view their own reports
+            if ($caseReport->reported_by !== $user->id) {
+                abort(403, 'Unauthorized access to this case report.');
+            }
+        } elseif ($user->hasRole('validator')) {
+            // Validators can only view reports from their facility
+            if ($user->facility_id && $caseReport->reporting_facility_id !== $user->facility_id) {
+                abort(403, 'You can only view reports from your facility.');
+            }
         }
+        // PESU admins can view all reports
 
         return Inertia::render('CaseReports/Show', [
             'caseReport' => $caseReport,
@@ -347,6 +383,11 @@ class CaseReportController extends Controller
             'municipalities' => $municipalities,
             'barangays' => $barangays,
             'facilities' => $facilities,
+            'userMunicipality' => $user->municipality, // Pass user's municipality
+            'userRole' => $user->roles->pluck('name')->first(), // Pass user role
+            'userName' => $user->name, // Pass user's name for health worker field
+            'userPosition' => $user->position, // Pass user's position for designation field
+            'userContact' => $user->contact_number, // Pass user's contact for health worker contact field
         ]);
     }
 
@@ -479,6 +520,12 @@ class CaseReportController extends Controller
             'new_values' => $caseReport->fresh()->toArray(),
         ]);
 
+        // Check for automatic outbreak alerts if case is submitted or updated
+        if ($status === 'submitted') {
+            $alertService = new \App\Services\OutbreakAlertService();
+            $alertService->checkAndGenerateAlerts($caseReport->disease_id, $caseReport->municipality_id);
+        }
+
         // Redirect with success message
         $message = $status === 'submitted'
             ? 'Case report updated and submitted successfully.'
@@ -509,11 +556,17 @@ class CaseReportController extends Controller
             'description' => "Case Report {$caseReport->case_id} deleted by PESU admin {$user->name}. Patient: {$caseReport->last_name}, {$caseReport->first_name}. Disease: {$caseReport->disease->name}. Status was: {$caseReport->status}",
         ]);
 
-        // Store case ID for success message
+        // Store data for alert recalculation
+        $diseaseId = $caseReport->disease_id;
+        $municipalityId = $caseReport->municipality_id;
         $caseId = $caseReport->case_id;
 
         // Delete the case report
         $caseReport->delete();
+
+        // Recalculate automatic alerts after deletion
+        $alertService = new \App\Services\OutbreakAlertService();
+        $alertService->checkAndGenerateAlerts($diseaseId, $municipalityId);
 
         return redirect()->route('case-reports.index')->with('success', "Case Report {$caseId} has been permanently deleted.");
     }
@@ -572,6 +625,10 @@ class CaseReportController extends Controller
             'description' => $auditDescription,
         ]);
 
+        // Check for automatic outbreak alerts after validation
+        $alertService = new \App\Services\OutbreakAlertService();
+        $alertService->checkAndGenerateAlerts($caseReport->disease_id, $caseReport->municipality_id);
+
         // Prepare success message
         $successMessage = "Case Report {$caseReport->case_id} has been validated and sent to PESU for approval.";
         if ($originalClassification === 'Suspect') {
@@ -613,6 +670,10 @@ class CaseReportController extends Controller
             'model_id' => $caseReport->id,
             'description' => "Case Report {$caseReport->case_id} approved by {$user->name}",
         ]);
+
+        // Check for automatic outbreak alerts after approval
+        $alertService = new \App\Services\OutbreakAlertService();
+        $alertService->checkAndGenerateAlerts($caseReport->disease_id, $caseReport->municipality_id);
 
         return redirect()->route('case-reports.index')->with('success', "Case Report {$caseReport->case_id} has been approved.");
     }

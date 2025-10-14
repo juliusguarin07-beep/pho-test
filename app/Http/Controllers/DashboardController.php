@@ -4,11 +4,19 @@ namespace App\Http\Controllers;
 
 use App\Models\CaseReport;
 use App\Models\OutbreakAlert;
+use App\Services\OutbreakAlertService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
+    protected $outbreakAlertService;
+
+    public function __construct(OutbreakAlertService $outbreakAlertService)
+    {
+        $this->outbreakAlertService = $outbreakAlertService;
+    }
+
     public function index(Request $request)
     {
         $user = auth()->user();
@@ -46,22 +54,17 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
-        // Active outbreak alerts
-        $outbreakAlerts = OutbreakAlert::where('status', 'published')
-            ->where('alert_start_date', '<=', now())
-            ->where(function ($q) {
-                $q->whereNull('alert_end_date')
-                  ->orWhere('alert_end_date', '>=', now());
-            })
-            ->with(['disease', 'municipality'])
-            ->latest()
-            ->limit(5)
-            ->get();
+        // Active outbreak alerts (both manual and automatic)
+        $outbreakAlerts = $this->outbreakAlertService->getActiveAlerts($user);
+
+        // Get current automatic alerts for dashboard banners
+        $automaticAlerts = $this->outbreakAlertService->getCurrentAutomaticAlerts();
 
         return Inertia::render('Dashboard', [
             'statistics' => $statistics,
             'recentCases' => $recentCases,
             'outbreakAlerts' => $outbreakAlerts,
+            'automaticAlerts' => $automaticAlerts,
         ]);
     }
 }

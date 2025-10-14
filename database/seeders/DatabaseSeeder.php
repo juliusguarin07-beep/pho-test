@@ -155,28 +155,28 @@ class DatabaseSeeder extends Seeder
         $this->call(FacilitySeeder::class);
 
         // Create diseases
-        $categoryIDiseases = [
+        $contagiousDiseases = [
             'Dengue', 'Leptospirosis', 'Typhoid Fever', 'Cholera',
             'Measles', 'COVID-19', 'Tuberculosis', 'Rabies',
         ];
 
-        $categoryIIDiseases = [
+        $nonContagiousDiseases = [
             'Acute Bloody Diarrhea', 'Acute Encephalitis Syndrome',
             'Chicken Pox', 'Diarrhea', 'Influenza-like Illness',
             'Pneumonia', 'Food Poisoning',
         ];
 
-        foreach ($categoryIDiseases as $disease) {
+        foreach ($contagiousDiseases as $disease) {
             Disease::create([
                 'name' => $disease,
-                'category' => 'Category I',
+                'category' => 'Contagious',
             ]);
         }
 
-        foreach ($categoryIIDiseases as $disease) {
+        foreach ($nonContagiousDiseases as $disease) {
             Disease::create([
                 'name' => $disease,
-                'category' => 'Category II',
+                'category' => 'Non-Contagious',
             ]);
         }
 

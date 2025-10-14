@@ -45,8 +45,8 @@ class UserManagementController extends Controller
             'contact_number' => 'nullable|string|max:20',
             'user_type' => 'required|in:encoder,validator,pesu_admin',
             'role' => 'required|exists:roles,name',
-            'facility_id' => 'nullable|exists:facilities,id',
-            'municipality_id' => 'nullable|exists:municipalities,id',
+            'facility_id' => $request->user_type === 'encoder' || $request->user_type === 'validator' ? 'required|exists:facilities,id' : 'nullable|exists:facilities,id',
+            'municipality_id' => $request->user_type === 'encoder' || $request->user_type === 'validator' ? 'required|exists:municipalities,id' : 'nullable|exists:municipalities,id',
             'is_active' => 'boolean',
         ]);
 
@@ -95,8 +95,8 @@ class UserManagementController extends Controller
             'contact_number' => 'nullable|string|max:20',
             'user_type' => 'required|in:encoder,validator,pesu_admin',
             'role' => 'required|exists:roles,name',
-            'facility_id' => 'nullable|exists:facilities,id',
-            'municipality_id' => 'nullable|exists:municipalities,id',
+            'facility_id' => $request->user_type === 'encoder' || $request->user_type === 'validator' ? 'required|exists:facilities,id' : 'nullable|exists:facilities,id',
+            'municipality_id' => $request->user_type === 'encoder' || $request->user_type === 'validator' ? 'required|exists:municipalities,id' : 'nullable|exists:municipalities,id',
             'is_active' => 'boolean',
         ]);
 

@@ -31,6 +31,11 @@ class HandleInertiaRequests extends Middleware
     {
         $user = $request->user();
 
+        // Load relationships if user exists
+        if ($user) {
+            $user->load(['facility', 'municipality']);
+        }
+
         return [
             ...parent::share($request),
             'auth' => [
@@ -42,6 +47,15 @@ class HandleInertiaRequests extends Middleware
                     'user_type' => $user->user_type,
                     'facility_id' => $user->facility_id,
                     'municipality_id' => $user->municipality_id,
+                    'facility' => $user->facility ? [
+                        'id' => $user->facility->id,
+                        'name' => $user->facility->name,
+                        'type' => $user->facility->type,
+                    ] : null,
+                    'municipality' => $user->municipality ? [
+                        'id' => $user->municipality->id,
+                        'name' => $user->municipality->name,
+                    ] : null,
                     'roles' => $user->getRoleNames(),
                     'permissions' => $user->getAllPermissions()->pluck('name'),
                 ] : null,

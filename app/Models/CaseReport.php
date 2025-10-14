@@ -123,27 +123,27 @@ class CaseReport extends Model
             $year = date('Y');
             $prefix = 'CASE-' . $year . '-';
 
-            // Get the latest case with the current year prefix, including soft-deleted records
-            $lastCase = self::withTrashed()
-                ->where('case_id', 'LIKE', $prefix . '%')
-                ->orderBy('case_id', 'desc')
-                ->lockForUpdate()
-                ->first();
+            // Get only ACTIVE (non-deleted) case IDs for this year and extract their numbers
+            $existingNumbers = self::where('case_id', 'LIKE', $prefix . '%')
+                ->pluck('case_id')
+                ->map(function ($caseId) {
+                    return intval(substr($caseId, -6));
+                })
+                ->sort()
+                ->values()
+                ->toArray();
 
-            if ($lastCase) {
-                $lastNumber = intval(substr($lastCase->case_id, -6));
-                $newNumber = $lastNumber + 1;
-            } else {
-                $newNumber = 1;
+            // Find the first gap in the sequence starting from 1
+            $nextNumber = 1;
+
+            if (!empty($existingNumbers)) {
+                // Look for the first available number in the sequence
+                while (in_array($nextNumber, $existingNumbers)) {
+                    $nextNumber++;
+                }
             }
 
-            $newCaseId = $prefix . str_pad($newNumber, 6, '0', STR_PAD_LEFT);
-
-            // Double-check that this ID doesn't exist in both active and soft-deleted records
-            while (self::withTrashed()->where('case_id', $newCaseId)->exists()) {
-                $newNumber++;
-                $newCaseId = $prefix . str_pad($newNumber, 6, '0', STR_PAD_LEFT);
-            }
+            $newCaseId = $prefix . str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
 
             return $newCaseId;
         });

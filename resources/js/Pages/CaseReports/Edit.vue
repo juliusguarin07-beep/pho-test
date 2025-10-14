@@ -75,9 +75,17 @@ interface Props {
     municipalities: Array<{ id: number; name: string }>;
     barangays: Array<{ id: number; name: string; municipality_id: number }>;
     facilities: Array<{ id: number; name: string; type: string }>;
+    userMunicipality?: { id: number; name: string } | null;
+    userRole?: string;
+    userName?: string;
+    userPosition?: string;
+    userContact?: string;
 }
 
 const props = defineProps<Props>();
+
+// Check if user is encoder
+const isEncoder = computed(() => props.userRole === 'encoder');
 
 const currentStep = ref(1);
 const totalSteps = 7;
@@ -478,8 +486,8 @@ const submitForm = () => {
                                     <label class="block text-sm font-semibold text-gray-700 mb-2">Case Classification *</label>
                                     <select v-model="form.case_classification" :required="shouldRequireFields"
                                         class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors duration-200">
-                                        <option value="Suspect">🟡 Suspect</option>
-                                        <option value="Confirmed">🔴 Confirmed</option>
+                                        <option value="Suspect">Suspect</option>
+                                        <option value="Confirmed">Confirmed</option>
                                     </select>
                                 </div>
 
@@ -487,9 +495,9 @@ const submitForm = () => {
                                     <label class="block text-sm font-semibold text-gray-700 mb-2">Outcome *</label>
                                     <select v-model="form.outcome" :required="shouldRequireFields"
                                         class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors duration-200">
-                                        <option value="Alive">✅ Alive</option>
-                                        <option value="Died">❌ Died</option>
-                                        <option value="Ongoing Treatment">🏥 Ongoing Treatment</option>
+                                        <option value="Alive">Alive</option>
+                                        <option value="Died">Died</option>
+                                        <option value="Ongoing Treatment">Ongoing Treatment</option>
                                     </select>
                                 </div>
                             </div>
@@ -611,12 +619,20 @@ const submitForm = () => {
                                             Municipality <span class="text-red-500">*</span>
                                         </label>
                                         <select v-model="form.municipality_id" :required="shouldRequireFields"
-                                                class="w-full rounded-xl border-gray-300 shadow-sm focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all duration-200 py-3 px-4">
+                                                :disabled="isEncoder"
+                                                :class="{
+                                                    'w-full rounded-xl border-gray-300 shadow-sm focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all duration-200 py-3 px-4': true,
+                                                    'bg-gray-100 cursor-not-allowed': isEncoder,
+                                                    'hover:bg-gray-50': !isEncoder
+                                                }">
                                             <option value="">Select Municipality</option>
                                             <option v-for="municipality in municipalities" :key="municipality.id" :value="municipality.id">
                                                 {{ municipality.name }}
                                             </option>
                                         </select>
+                                        <p v-if="isEncoder" class="mt-1 text-xs text-gray-500">
+                                            Municipality cannot be changed for existing case reports
+                                        </p>
                                     </div>
 
                                     <div>
@@ -738,9 +754,9 @@ const submitForm = () => {
                                         <label class="block text-sm font-semibold text-gray-700 mb-2">Clinical Outcome</label>
                                         <select v-model="form.clinical_outcome"
                                                 class="w-full rounded-xl border-gray-300 shadow-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-200 py-3 px-4">
-                                            <option value="Alive">✅ Alive</option>
-                                            <option value="Died">❌ Died</option>
-                                            <option value="Unknown">❓ Unknown</option>
+                                            <option value="Alive">Alive</option>
+                                            <option value="Died">Died</option>
+                                            <option value="Unknown">Unknown</option>
                                         </select>
                                     </div>
 
@@ -1037,26 +1053,55 @@ const submitForm = () => {
                                         <label class="block text-sm font-semibold text-gray-700 mb-2">
                                             Reporting Health Worker <span class="text-red-500">*</span>
                                         </label>
-                                        <input v-model="form.reporting_health_worker" type="text" :required="shouldRequireFields"
-                                               class="w-full rounded-xl border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-all duration-200 py-3 px-4"
+                                        <input v-model="form.reporting_health_worker"
+                                               type="text"
+                                               :required="shouldRequireFields"
+                                               :disabled="isEncoder"
+                                               :class="{
+                                                   'w-full rounded-xl border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-all duration-200 py-3 px-4': true,
+                                                   'bg-gray-100 cursor-not-allowed': isEncoder,
+                                                   'hover:bg-gray-50': !isEncoder
+                                               }"
                                                placeholder="Enter health worker name" />
+                                        <p v-if="isEncoder" class="mt-1 text-xs text-gray-500">
+                                            Health worker cannot be changed for existing case reports
+                                        </p>
                                     </div>
 
                                     <div>
                                         <label class="block text-sm font-semibold text-gray-700 mb-2">
                                             Designation <span class="text-red-500">*</span>
                                         </label>
-                                        <input v-model="form.health_worker_designation" type="text" :required="shouldRequireFields"
-                                               class="w-full rounded-xl border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-all duration-200 py-3 px-4"
+                                        <input v-model="form.health_worker_designation"
+                                               type="text"
+                                               :required="shouldRequireFields"
+                                               :disabled="isEncoder"
+                                               :class="{
+                                                   'w-full rounded-xl border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-all duration-200 py-3 px-4': true,
+                                                   'bg-gray-100 cursor-not-allowed': isEncoder,
+                                                   'hover:bg-gray-50': !isEncoder
+                                               }"
                                                placeholder="Enter designation" />
+                                        <p v-if="isEncoder" class="mt-1 text-xs text-gray-500">
+                                            Designation cannot be changed for existing case reports
+                                        </p>
                                     </div>
                                 </div>
 
                                 <div>
                                     <label class="block text-sm font-semibold text-gray-700 mb-2">Contact Information</label>
-                                    <input v-model="form.health_worker_contact" type="text"
-                                           class="w-full rounded-xl border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-all duration-200 py-3 px-4"
+                                    <input v-model="form.health_worker_contact"
+                                           type="text"
+                                           :disabled="isEncoder"
+                                           :class="{
+                                               'w-full rounded-xl border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-all duration-200 py-3 px-4': true,
+                                               'bg-gray-100 cursor-not-allowed': isEncoder,
+                                               'hover:bg-gray-50': !isEncoder
+                                           }"
                                            placeholder="Phone number or email" />
+                                    <p v-if="isEncoder" class="mt-1 text-xs text-gray-500">
+                                        Contact information cannot be changed for existing case reports
+                                    </p>
                                 </div>
                             </div>
                         </div>

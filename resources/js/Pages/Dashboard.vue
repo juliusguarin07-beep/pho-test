@@ -14,6 +14,7 @@ interface Props {
     };
     recentCases?: Array<any>;
     outbreakAlerts?: Array<any>;
+    automaticAlerts?: Array<any>;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -27,6 +28,7 @@ const props = withDefaults(defineProps<Props>(), {
     }),
     recentCases: () => [],
     outbreakAlerts: () => [],
+    automaticAlerts: () => [],
 });
 
 const page = usePage();
@@ -77,10 +79,10 @@ const getStatusColor = (status: string) => {
 
 const getStatusBadge = (status: string) => {
     const badges: Record<string, { bg: string; text: string; icon: string }> = {
-        'draft': { bg: 'bg-gray-500', text: 'text-white', icon: '📝' },
-        'submitted': { bg: 'bg-blue-500', text: 'text-white', icon: '📤' },
-        'validated': { bg: 'bg-green-500', text: 'text-white', icon: '✅' },
-        'approved': { bg: 'bg-purple-500', text: 'text-white', icon: '🎯' },
+        'draft': { bg: 'bg-gray-500', text: 'text-white', icon: 'Draft' },
+        'submitted': { bg: 'bg-blue-500', text: 'text-white', icon: 'Submitted' },
+        'validated': { bg: 'bg-green-500', text: 'text-white', icon: 'Validated' },
+        'approved': { bg: 'bg-purple-500', text: 'text-white', icon: 'Approved' },
         'returned': { bg: 'bg-orange-500', text: 'text-white', icon: '↩️' },
     };
     return badges[status] || badges.draft;
@@ -102,6 +104,38 @@ const formatDate = (dateString: string) => {
         return 'Invalid Date';
     }
 };
+
+const getAutomaticAlertColor = (caseCount: number) => {
+    if (caseCount >= 50) {
+        return {
+            bg: 'bg-red-50',
+            border: 'border-red-200',
+            text: 'text-red-800',
+            icon: 'CRITICAL',
+            level: 'CRITICAL ALERT',
+            color: '#F44336'
+        };
+    } else if (caseCount >= 25) {
+        return {
+            bg: 'bg-orange-50',
+            border: 'border-orange-200',
+            text: 'text-orange-800',
+            icon: 'HIGH',
+            level: 'HIGH ALERT',
+            color: '#FF9800'
+        };
+    } else if (caseCount >= 10) {
+        return {
+            bg: 'bg-yellow-50',
+            border: 'border-yellow-200',
+            text: 'text-yellow-800',
+            icon: 'MODERATE',
+            level: 'MODERATE ALERT',
+            color: '#FFC107'
+        };
+    }
+    return null;
+};
 </script>
 
 <template>
@@ -120,6 +154,79 @@ const formatDate = (dateString: string) => {
         <div class="py-8">
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8 space-y-6">
 
+                <!-- AUTOMATIC OUTBREAK ALERTS - Shown at the top for all users -->
+                <div v-if="automaticAlerts && automaticAlerts.length > 0" class="space-y-3">
+                    <div
+                        v-for="alert in automaticAlerts"
+                        :key="alert.id"
+                        class="relative overflow-hidden rounded-lg border-l-4 p-4 shadow-lg"
+                        :class="[
+                            getAutomaticAlertColor(alert.case_count)?.bg,
+                            getAutomaticAlertColor(alert.case_count)?.border
+                        ]"
+                        :style="{
+                            borderLeftColor: getAutomaticAlertColor(alert.case_count)?.color
+                        }"
+                    >
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-start space-x-3">
+                                <div class="flex-shrink-0">
+                                    <div
+                                        class="flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold"
+                                        :style="{
+                                            backgroundColor: getAutomaticAlertColor(alert.case_count)?.color,
+                                            color: 'white'
+                                        }"
+                                    >
+                                        {{ getAutomaticAlertColor(alert.case_count)?.icon }}
+                                    </div>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex items-center space-x-2 mb-1">
+                                        <h3
+                                            class="text-sm font-bold uppercase tracking-wide"
+                                            :class="getAutomaticAlertColor(alert.case_count)?.text"
+                                        >
+                                            {{ getAutomaticAlertColor(alert.case_count)?.level }}
+                                        </h3>
+                                        <span
+                                            class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium"
+                                            :style="{
+                                                backgroundColor: getAutomaticAlertColor(alert.case_count)?.color + '20',
+                                                color: getAutomaticAlertColor(alert.case_count)?.color
+                                            }"
+                                        >
+                                            {{ alert.case_count }} cases
+                                        </span>
+                                    </div>
+                                    <p
+                                        class="text-sm font-semibold mb-1"
+                                        :class="getAutomaticAlertColor(alert.case_count)?.text"
+                                    >
+                                        {{ alert.disease?.name }} outbreak in {{ alert.municipality?.name }}
+                                    </p>
+                                    <p
+                                        class="text-xs"
+                                        :class="getAutomaticAlertColor(alert.case_count)?.text"
+                                    >
+                                        {{ alert.case_count }} cases reported in the last 30 days • Threshold: {{ alert.threshold_reached }} cases
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="flex-shrink-0">
+                                <svg
+                                    class="h-5 w-5"
+                                    :class="getAutomaticAlertColor(alert.case_count)?.text"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                >
+                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- ENCODER DASHBOARD -->
                 <div v-if="isEncoder">
                     <!-- Modern Welcome Banner for Encoder -->
@@ -137,8 +244,11 @@ const formatDate = (dateString: string) => {
                                         </div>
                                     </div>
                                     <div class="text-white">
-                                        <h1 class="text-3xl font-bold mb-1">Welcome back, {{ user?.name }}! 👋</h1>
-                                        <p class="text-blue-100 text-lg font-medium">Disease Surveillance Encoder</p>
+                                        <h1 class="text-3xl font-bold mb-1">Welcome back, {{ user?.name }}!</h1>
+                                        <p class="text-blue-100 text-lg font-medium">
+                                            Disease Surveillance Encoder
+                                            <span v-if="user?.municipality?.name" class="text-blue-200 font-normal"> - {{ user.municipality.name }}</span>
+                                        </p>
                                         <p class="text-blue-200 text-sm mt-1">{{ currentDate }}</p>
                                     </div>
                                 </div>
@@ -303,8 +413,11 @@ const formatDate = (dateString: string) => {
                                         </div>
                                     </div>
                                     <div class="text-white">
-                                        <h1 class="text-3xl font-bold mb-1">Welcome back, {{ user?.name }}! ✓</h1>
-                                        <p class="text-emerald-100 text-lg font-medium">District Hospital Validator</p>
+                                        <h1 class="text-3xl font-bold mb-1">Welcome back, {{ user?.name }}!</h1>
+                                        <p class="text-emerald-100 text-lg font-medium">
+                                            District Hospital Validator
+                                            <span v-if="user?.municipality?.name" class="text-emerald-200 font-normal"> - {{ user.municipality.name }}</span>
+                                        </p>
                                         <p class="text-emerald-200 text-sm mt-1">{{ currentDate }}</p>
                                     </div>
                                 </div>
@@ -510,14 +623,14 @@ const formatDate = (dateString: string) => {
                                     <div>
                                         <h3 class="text-3xl font-bold text-white mb-2 flex items-center">
                                             Welcome, {{ user?.name }}
-                                            <span class="ml-3 text-2xl">👨‍💼</span>
                                         </h3>
                                         <div class="flex items-center space-x-2 mb-1">
                                             <span class="px-3 py-1 bg-white bg-opacity-25 rounded-full text-sm font-bold text-white backdrop-blur-sm border border-white border-opacity-30">
                                                 PESU Super Administrator
+                                                <span v-if="user?.municipality?.name" class="font-normal"> - {{ user.municipality.name }}</span>
                                             </span>
                                             <span class="px-3 py-1 bg-purple-800 bg-opacity-50 rounded-full text-xs font-semibold text-purple-100 backdrop-blur-sm">
-                                                🔒 Full Access
+                                                Full Access
                                             </span>
                                         </div>
                                         <p class="text-purple-100 text-sm font-medium mt-2">

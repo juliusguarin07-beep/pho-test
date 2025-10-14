@@ -74,14 +74,6 @@ const resolveAlert = (alertId: number) => {
     }
 };
 
-const concludeAlert = (alertId: number) => {
-    if (confirm('Are you sure you want to conclude this outbreak alert? This will mark it as completed.')) {
-        router.post(route('outbreak-alerts.conclude', alertId), {}, {
-            preserveScroll: true,
-        });
-    }
-};
-
 const deleteAlert = (alertId: number) => {
     if (confirm('Are you sure you want to delete this outbreak alert? This action cannot be undone.')) {
         router.delete(route('outbreak-alerts.destroy', alertId), {
@@ -206,14 +198,6 @@ const deleteAlert = (alertId: number) => {
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                             </svg>
                                             Resolve
-                                        </button>
-                                        <button v-if="alert.status === 'published'"
-                                            @click="concludeAlert(alert.id)"
-                                            class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-purple-600 bg-purple-50 rounded-md hover:bg-purple-100 transition-colors duration-150">
-                                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v11a2 2 0 002 2h5.586a1 1 0 00.707-.293l5.414-5.414a1 1 0 00.293-.707V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                                            </svg>
-                                            Conclude
                                         </button>
                                         <button @click="deleteAlert(alert.id)"
                                             class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 rounded-md hover:bg-red-100 transition-colors duration-150">

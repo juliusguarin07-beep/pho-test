@@ -1,386 +1,683 @@
+﻿<template>
+  <Head title="Epidemiologic Surveillance Analytics" />
+  <AuthenticatedLayout>
+    <template #header>
+      <h2 class="text-xl font-semibold leading-tight text-gray-800">
+        Epidemiologic Surveillance Analytics Dashboard
+      </h2>
+    </template>
+
+    <div class="py-12">
+      <div class="mx-auto space-y-8 max-w-7xl sm:px-6 lg:px-8">
+
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
+          <div class="p-6 bg-white shadow sm:rounded-lg">
+            <dt class="text-sm font-medium text-gray-500 truncate">Total Cases</dt>
+            <dd class="mt-1 text-3xl font-semibold text-gray-900">{{ summary?.total_cases || 0 }}</dd>
+          </div>
+          <div class="p-6 bg-white shadow sm:rounded-lg">
+            <dt class="text-sm font-medium text-gray-500 truncate">Confirmed</dt>
+            <dd class="mt-1 text-3xl font-semibold text-green-900">{{ summary?.confirmed_cases || 0 }}</dd>
+          </div>
+          <div class="p-6 bg-white shadow sm:rounded-lg">
+            <dt class="text-sm font-medium text-gray-500 truncate">Deaths</dt>
+            <dd class="mt-1 text-3xl font-semibold text-red-900">{{ summary?.deaths || 0 }}</dd>
+          </div>
+          <div class="p-6 bg-white shadow sm:rounded-lg">
+            <dt class="text-sm font-medium text-gray-500 truncate">Outbreaks</dt>
+            <dd class="mt-1 text-3xl font-semibold text-orange-900">{{ summary?.active_outbreaks || 0 }}</dd>
+          </div>
+          <div class="p-6 bg-white shadow sm:rounded-lg">
+            <dt class="text-sm font-medium text-gray-500 truncate">CFR</dt>
+            <dd class="mt-1 text-3xl font-semibold text-purple-900">{{ (summary?.case_fatality_rate || 0).toFixed(2) }}%</dd>
+          </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="bg-white shadow sm:rounded-lg">
+          <div class="border-b border-gray-200">
+            <nav class="flex px-6 -mb-px space-x-8">
+                            <button
+                @click="activeTab = 'surveillance'"
+                :class="[
+                  'py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors duration-200',
+                  activeTab === 'surveillance'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                ]"
+              >
+                Epidemiologic Surveillance Analytics
+              </button>
+              <button
+                @click="activeTab = 'demographic'"
+                :class="[
+                  'py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors duration-200',
+                  activeTab === 'demographic'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                ]"
+              >
+                Demographic Analytics
+              </button>
+              <button
+                @click="activeTab = 'municipality'"
+                :class="[
+                  'py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors duration-200',
+                  activeTab === 'municipality'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                ]"
+              >
+                Municipality Analytics
+              </button>
+            </nav>
+          </div>
+        </div>
+
+        <!-- Tab Content -->
+
+        <!-- 1. Epidemiologic Surveillance Analytics -->
+        <div v-show="activeTab === 'surveillance'" class="bg-white shadow sm:rounded-lg">
+          <div class="p-6 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900">Epidemiologic Surveillance Analytics</h3>
+            <p class="mt-1 text-sm text-gray-600">Tracking disease trends and detecting outbreaks early</p>
+          </div>
+
+          <!-- Weekly Case Trend Analysis -->
+          <div class="p-6 border-b border-gray-100">
+            <h4 class="mb-4 font-medium text-gray-800 text-md">Weekly Case Trend Analysis</h4>
+            <p class="mb-4 text-sm text-gray-600">Monitors weekly number of cases per disease and area</p>
+            <div class="h-96">
+              <canvas id="weeklyTrendChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Threshold Analysis (Early Warning) -->
+          <div class="p-6 border-b border-gray-100">
+            <h4 class="mb-4 font-medium text-gray-800 text-md">Threshold Analysis (Early Warning)</h4>
+            <p class="mb-4 text-sm text-gray-600">Compares current cases with 5-year mean + 2SD</p>
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div
+                v-for="alert in thresholdAnalysis"
+                :key="alert.disease"
+                :class="['rounded-lg border p-4', getAlertColor(alert.alert_level)]"
+              >
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h5 class="font-medium">{{ getAlertIcon(alert.alert_level) }} {{ alert.disease }}</h5>
+                    <p class="text-sm">{{ alert.current_cases }} cases ({{ alert.percentage_of_threshold.toFixed(1) }}% of threshold)</p>
+                  </div>
+                  <div class="text-right">
+                    <div class="text-lg font-bold">{{ alert.alert_level.toUpperCase() }}</div>
+                    <div class="text-xs">Threshold: {{ alert.threshold }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Epidemic Curve Generation -->
+          <div class="p-6 border-b border-gray-100">
+            <h4 class="mb-4 font-medium text-gray-800 text-md">Epidemic Curve Generation</h4>
+            <p class="mb-4 text-sm text-gray-600">Visualizes onset of cases over time</p>
+            <div class="h-96">
+              <canvas id="epidemicCurveChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Geospatial Mapping -->
+          <div class="p-6 border-b border-gray-100">
+            <h4 class="mb-4 font-medium text-gray-800 text-md">Geospatial Mapping</h4>
+            <p class="mb-4 text-sm text-gray-600">Identifies hotspots or clusters</p>
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div
+                v-for="location in geospatialData"
+                :key="location.barangay"
+                class="p-4 border border-gray-200 rounded-lg"
+              >
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h5 class="font-medium">{{ location.barangay }}</h5>
+                    <p class="text-sm text-gray-600">{{ location.municipality }}</p>
+                    <p class="text-xs text-gray-500">{{ location.diseases.join(', ') }}</p>
+                  </div>
+                  <div class="text-right">
+                    <div class="text-lg font-bold">{{ location.case_count }}</div>
+                    <div :class="['rounded-full px-2 py-1 text-xs text-white', getRiskColor(location.risk_level)]">
+                      {{ location.risk_level.toUpperCase() }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Disease Ranking -->
+          <div class="p-6">
+            <h4 class="mb-4 font-medium text-gray-800 text-md">Disease Ranking</h4>
+            <p class="mb-4 text-sm text-gray-600">Ranks diseases by number of reported cases</p>
+            <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              <div class="h-96">
+                <canvas id="diseaseRankingChart"></canvas>
+              </div>
+              <div class="space-y-3">
+                <div
+                  v-for="disease in diseaseRanking"
+                  :key="disease.disease"
+                  class="flex items-center justify-between p-3 border border-gray-200 rounded-lg"
+                >
+                  <div class="flex items-center space-x-3">
+                    <div class="flex items-center justify-center w-8 h-8 text-sm font-medium text-blue-800 bg-blue-100 rounded-full">
+                      {{ disease.rank }}
+                    </div>
+                    <div>
+                      <h5 class="font-medium">{{ disease.disease }}</h5>
+                    </div>
+                  </div>
+                  <div class="text-lg font-bold text-gray-900">{{ disease.total }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Demographic Analytics -->
+        <div v-show="activeTab === 'demographic'" class="bg-white shadow sm:rounded-lg">
+          <div class="p-6 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900">Demographic Analytics</h3>
+            <p class="mt-1 text-sm text-gray-600">Understanding who is affected</p>
+          </div>
+
+          <!-- Age Distribution -->
+          <div class="p-6 border-b border-gray-100">
+            <h4 class="mb-4 font-medium text-gray-800 text-md">Age Distribution</h4>
+            <p class="mb-4 text-sm text-gray-600">Breaks down cases by age groups</p>
+            <div class="h-96">
+              <canvas id="ageDistributionChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Sex Distribution -->
+          <div class="p-6 border-b border-gray-100">
+            <h4 class="mb-4 font-medium text-gray-800 text-md">Sex Distribution</h4>
+            <p class="mb-4 text-sm text-gray-600">Male vs. Female cases</p>
+            <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              <div class="h-96">
+                <canvas id="sexDistributionChart"></canvas>
+              </div>
+              <div class="space-y-4">
+                <div
+                  v-for="sex in sexDistribution"
+                  :key="sex.sex"
+                  class="p-4 border border-gray-200 rounded-lg"
+                >
+                  <div class="flex items-center justify-between">
+                    <h5 class="font-medium">{{ sex.sex.charAt(0).toUpperCase() + sex.sex.slice(1) }}</h5>
+                    <div class="text-2xl font-bold">{{ sex.total }}</div>
+                  </div>
+                  <div class="h-2 mt-2 bg-gray-200 rounded-full">
+                    <div
+                      :class="['h-2 rounded-full', sex.sex === 'male' ? 'bg-blue-500' : 'bg-pink-500']"
+                      :style="{ width: `${(sex.total / summary.total_cases) * 100}%` }"
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- High-Risk Group Identification -->
+          <div class="p-6">
+            <h4 class="mb-4 font-medium text-gray-800 text-md">High-Risk Group Identification</h4>
+            <p class="mb-4 text-sm text-gray-600">Detects groups most affected</p>
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div
+                v-for="group in highRiskGroups"
+                :key="group.group"
+                class="p-4 border border-orange-200 rounded-lg bg-orange-50"
+              >
+                <div class="mb-3">
+                  <h5 class="font-medium text-orange-900">⚠️ {{ group.group }}</h5>
+                  <p class="text-lg font-bold text-orange-800">{{ group.total_cases }} cases</p>
+                </div>
+                <div class="space-y-1">
+                  <div
+                    v-for="disease in group.diseases.slice(0, 3)"
+                    :key="disease.disease"
+                    class="flex justify-between text-sm"
+                  >
+                    <span class="text-orange-700">{{ disease.disease }}</span>
+                    <span class="font-medium text-orange-900">{{ disease.cases }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Municipality Analytics -->
+        <div v-show="activeTab === 'municipality'" class="bg-white shadow sm:rounded-lg">
+          <div class="p-6 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900">Municipality Analytics</h3>
+            <p class="mt-1 text-sm text-gray-600">Provides an overview of all reported cases per municipality</p>
+          </div>
+
+          <!-- Total Cases by Municipality -->
+          <div class="p-6 border-b border-gray-100">
+            <h4 class="mb-4 font-medium text-gray-800 text-md">Total Cases by Municipality</h4>
+            <p class="mb-4 text-sm text-gray-600">Aggregates total reported cases</p>
+            <div class="h-96">
+              <canvas id="municipalityCasesChart"></canvas>
+            </div>
+          </div>
+
+          <!-- New Cases (Week-on-Week) -->
+          <div class="p-6 border-b border-gray-100">
+            <h4 class="mb-4 font-medium text-gray-800 text-md">New Cases (Week-on-Week)</h4>
+            <p class="mb-4 text-sm text-gray-600">Shows weekly increase or decrease</p>
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div
+                v-for="change in weekOnWeekChanges"
+                :key="change.municipality"
+                :class="[
+                  'rounded-lg border p-4',
+                  change.trend === 'up' ? 'border-red-200 bg-red-50' :
+                  change.trend === 'down' ? 'border-green-200 bg-green-50' :
+                  'border-gray-200 bg-gray-50'
+                ]"
+              >
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h5 class="font-medium">{{ getTrendIcon(change.trend) }} {{ change.municipality }}</h5>
+                    <p class="text-sm">Current: {{ change.current_week }} | Previous: {{ change.previous_week }}</p>
+                  </div>
+                  <div class="text-right">
+                    <div :class="[
+                      'text-lg font-bold',
+                      change.percentage_change > 0 ? 'text-red-600' :
+                      change.percentage_change < 0 ? 'text-green-600' : 'text-gray-600'
+                    ]">
+                      {{ change.percentage_change > 0 ? '+' : '' }}{{ change.percentage_change.toFixed(1) }}%
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Top Diseases per Municipality -->
+          <div class="p-6">
+            <h4 class="mb-4 font-medium text-gray-800 text-md">Top Diseases per Municipality</h4>
+            <p class="mb-4 text-sm text-gray-600">Lists most common diseases</p>
+            <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+              <div
+                v-for="municipality in topDiseasesByMunicipality"
+                :key="municipality.municipality"
+                class="p-4 border border-gray-200 rounded-lg"
+              >
+                <h5 class="mb-3 font-medium text-gray-900">{{ municipality.municipality }}</h5>
+                <div class="space-y-2">
+                  <div
+                    v-for="(disease, index) in municipality.diseases.slice(0, 5)"
+                    :key="disease.disease"
+                    class="flex items-center justify-between"
+                  >
+                    <div class="flex items-center space-x-2">
+                      <div class="flex items-center justify-center w-6 h-6 text-xs font-medium text-blue-800 bg-blue-100 rounded-full">
+                        {{ index + 1 }}
+                      </div>
+                      <span class="text-sm">{{ disease.disease }}</span>
+                    </div>
+                    <span class="font-medium">{{ disease.cases }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </AuthenticatedLayout>
+</template>
+
 <script setup lang="ts">
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, router } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
+import { Head } from "@inertiajs/vue3";
+import { ref, onMounted, nextTick, watch } from "vue";
+import { Chart, registerables } from "chart.js";
+
+Chart.register(...registerables);
+
+interface Summary {
+    total_cases: number;
+    confirmed_cases: number;
+    deaths: number;
+    active_outbreaks: number;
+    case_fatality_rate: number;
+}
+
+interface WeeklyTrend {
+    week: string;
+    total: number;
+    diseases: Array<{ disease: string; total: number }>;
+}
+
+interface ThresholdAnalysis {
+    disease: string;
+    current_cases: number;
+    threshold: number;
+    alert_level: string;
+    percentage_of_threshold: number;
+}
+
+interface EpidemicCurve {
+    date: string;
+    cases: number;
+}
+
+interface GeospatialData {
+    municipality: string;
+    barangay: string;
+    case_count: number;
+    diseases: string[];
+    risk_level: string;
+}
+
+interface DiseaseRanking {
+    rank: number;
+    disease: string;
+    total: number;
+}
+
+interface AgeDistribution {
+    age_group: string;
+    male: number;
+    female: number;
+    total: number;
+}
+
+interface SexDistribution {
+    sex: string;
+    total: number;
+}
+
+interface HighRiskGroup {
+    group: string;
+    total_cases: number;
+    diseases: Array<{ disease: string; cases: number }>;
+}
+
+interface MunicipalityCase {
+    municipality: string;
+    total_cases: number;
+    disease_count: number;
+}
+
+interface WeekOnWeekChange {
+    municipality: string;
+    current_week: number;
+    previous_week: number;
+    percentage_change: number;
+    trend: string;
+}
+
+interface TopDiseasesByMunicipality {
+    municipality: string;
+    diseases: Array<{ disease: string; cases: number }>;
+}
 
 interface Props {
-    summary: {
-        total_cases: number;
-        confirmed_cases: number;
-        deaths: number;
-        active_outbreaks: number;
-        case_fatality_rate: number;
-    };
-    casesByDisease: Array<{ disease: string; total: number }>;
-    casesByMunicipality: Array<{ municipality: string; total: number }>;
-    casesByStatus: Array<{ status: string; total: number }>;
-    casesByClassification: Array<{ classification: string; total: number }>;
-    casesByOutcome: Array<{ outcome: string; total: number }>;
-    monthlyTrend: Array<{ month: string; total: number }>;
-    ageDistribution: Array<{ age_group: string; total: number }>;
-    genderDistribution: Array<{ sex: string; total: number }>;
-    filters: {
-        start_date: string;
-        end_date: string;
-    };
+    summary: Summary;
+    weeklyTrend?: WeeklyTrend[];
+    thresholdAnalysis?: ThresholdAnalysis[];
+    epidemicCurve?: EpidemicCurve[];
+    geospatialData?: GeospatialData[];
+    diseaseRanking?: DiseaseRanking[];
+    ageDistribution?: AgeDistribution[];
+    sexDistribution?: SexDistribution[];
+    highRiskGroups?: HighRiskGroup[];
+    municipalityCases?: MunicipalityCase[];
+    weekOnWeekChanges?: WeekOnWeekChange[];
+    topDiseasesByMunicipality?: TopDiseasesByMunicipality[];
+    [key: string]: any;
 }
 
 const props = defineProps<Props>();
+const {
+    summary,
+    weeklyTrend = [],
+    thresholdAnalysis = [],
+    epidemicCurve = [],
+    geospatialData = [],
+    diseaseRanking = [],
+    ageDistribution = [],
+    sexDistribution = [],
+    highRiskGroups = [],
+    municipalityCases = [],
+    weekOnWeekChanges = [],
+    topDiseasesByMunicipality = []
+} = props;
 
-const filters = ref({
-    start_date: props.filters.start_date,
-    end_date: props.filters.end_date,
+const chartInstances = ref<{ [key: string]: Chart }>({});
+const activeTab = ref('surveillance');
+
+const destroyCharts = () => {
+    Object.values(chartInstances.value).forEach(chart => {
+        if (chart) chart.destroy();
+    });
+    chartInstances.value = {};
+};
+
+const getAlertColor = (level: string) => {
+    const colors = {
+        red: 'bg-red-100 text-red-800 border-red-200',
+        orange: 'bg-orange-100 text-orange-800 border-orange-200',
+        yellow: 'bg-yellow-100 text-yellow-800 border-yellow-200'
+    };
+    return colors[level as keyof typeof colors] || 'bg-green-100 text-green-800 border-green-200';
+};
+
+const getAlertIcon = (level: string) => {
+    const icons = { red: '🔴', orange: '🟠', yellow: '🟡' };
+    return icons[level as keyof typeof icons] || '🟢';
+};
+
+const getRiskColor = (level: string) => {
+    const colors = { high: 'bg-red-500', medium: 'bg-orange-500' };
+    return colors[level as keyof typeof colors] || 'bg-yellow-500';
+};
+
+const getTrendIcon = (trend: string) => {
+    const icons = { up: '↗', down: '↘' };
+    return icons[trend as keyof typeof icons] || '→';
+};
+
+const initializeCharts = async () => {
+    await nextTick();
+    destroyCharts();
+
+    // Weekly Case Trend Analysis
+    const weeklyTrendCtx = document.getElementById("weeklyTrendChart") as HTMLCanvasElement;
+    if (weeklyTrendCtx && weeklyTrend.length) {
+        chartInstances.value.weeklyTrend = new Chart(weeklyTrendCtx, {
+            type: "line",
+            data: {
+                labels: weeklyTrend.map(item => item.week),
+                datasets: [{
+                    label: "Total Cases",
+                    data: weeklyTrend.map(item => item.total),
+                    borderColor: "rgb(59, 130, 246)",
+                    backgroundColor: "rgba(59, 130, 246, 0.1)",
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: { display: true, text: 'Weekly Case Trends' }
+                }
+            }
+        });
+    }
+
+    // Epidemic Curve Generation
+    const epidemicCurveCtx = document.getElementById("epidemicCurveChart") as HTMLCanvasElement;
+    if (epidemicCurveCtx && epidemicCurve.length) {
+        chartInstances.value.epidemicCurve = new Chart(epidemicCurveCtx, {
+            type: "bar",
+            data: {
+                labels: epidemicCurve.map(item => item.date),
+                datasets: [{
+                    label: "Cases by Onset Date",
+                    data: epidemicCurve.map(item => item.cases),
+                    backgroundColor: "rgba(34, 197, 94, 0.8)",
+                    borderColor: "rgb(34, 197, 94)",
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: { display: true, text: 'Epidemic Curve' }
+                }
+            }
+        });
+    }
+
+    // Disease Ranking
+    const diseaseRankingCtx = document.getElementById("diseaseRankingChart") as HTMLCanvasElement;
+    if (diseaseRankingCtx && diseaseRanking.length) {
+        chartInstances.value.diseaseRanking = new Chart(diseaseRankingCtx, {
+            type: "doughnut",
+            data: {
+                labels: diseaseRanking.map(item => item.disease),
+                datasets: [{
+                    data: diseaseRanking.map(item => item.total),
+                    backgroundColor: [
+                        'rgba(239, 68, 68, 0.8)',
+                        'rgba(245, 158, 11, 0.8)',
+                        'rgba(34, 197, 94, 0.8)',
+                        'rgba(59, 130, 246, 0.8)',
+                        'rgba(147, 51, 234, 0.8)'
+                    ],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: { display: true, text: 'Top 5 Diseases' }
+                }
+            }
+        });
+    }
+
+    // Age Distribution (Population Pyramid)
+    const ageDistributionCtx = document.getElementById("ageDistributionChart") as HTMLCanvasElement;
+    if (ageDistributionCtx && ageDistribution.length) {
+        chartInstances.value.ageDistribution = new Chart(ageDistributionCtx, {
+            type: "bar",
+            data: {
+                labels: ageDistribution.map(item => item.age_group),
+                datasets: [
+                    {
+                        label: "Male",
+                        data: ageDistribution.map(item => -item.male),
+                        backgroundColor: "rgba(59, 130, 246, 0.8)",
+                        borderColor: "rgb(59, 130, 246)",
+                        borderWidth: 1
+                    },
+                    {
+                        label: "Female",
+                        data: ageDistribution.map(item => item.female),
+                        backgroundColor: "rgba(236, 72, 153, 0.8)",
+                        borderColor: "rgb(236, 72, 153)",
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: {
+                    title: { display: true, text: 'Age-Sex Distribution (Population Pyramid)' }
+                },
+                scales: {
+                    x: {
+                        stacked: false,
+                        ticks: {
+                            callback: function(value: any) { return Math.abs(value); }
+                        }
+                    },
+                    y: { stacked: false }
+                }
+            }
+        });
+    }
+
+    // Sex Distribution
+    const sexDistributionCtx = document.getElementById("sexDistributionChart") as HTMLCanvasElement;
+    if (sexDistributionCtx && sexDistribution.length) {
+        chartInstances.value.sexDistribution = new Chart(sexDistributionCtx, {
+            type: "pie",
+            data: {
+                labels: sexDistribution.map(item => item.sex),
+                datasets: [{
+                    data: sexDistribution.map(item => item.total),
+                    backgroundColor: ["rgba(59, 130, 246, 0.8)", "rgba(236, 72, 153, 0.8)"],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: { display: true, text: 'Sex Distribution' }
+                }
+            }
+        });
+    }
+
+    // Municipality Cases
+    const municipalityCasesCtx = document.getElementById("municipalityCasesChart") as HTMLCanvasElement;
+    if (municipalityCasesCtx && municipalityCases.length) {
+        chartInstances.value.municipalityCases = new Chart(municipalityCasesCtx, {
+            type: "bar",
+            data: {
+                labels: municipalityCases.map(item => item.municipality),
+                datasets: [{
+                    label: "Total Cases",
+                    data: municipalityCases.map(item => item.total_cases),
+                    backgroundColor: "rgba(168, 85, 247, 0.8)",
+                    borderColor: "rgb(168, 85, 247)",
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: { display: true, text: 'Total Cases by Municipality' }
+                }
+            }
+        });
+    }
+};
+
+onMounted(() => {
+    initializeCharts();
 });
 
-const applyFilters = () => {
-    router.get('/analytics', filters.value, {
-        preserveState: true,
-        preserveScroll: true,
-    });
-};
-
-const getMaxValue = (data: Array<{ total: number }>) => {
-    return Math.max(...data.map(d => d.total), 1);
-};
-
-const getPercentage = (value: number, max: number) => {
-    return (value / max) * 100;
-};
+// Watch for tab changes and reinitialize charts
+watch(activeTab, async () => {
+    await nextTick();
+    initializeCharts();
+});
 </script>
-
-<template>
-    <Head title="Analytics" />
-
-    <AuthenticatedLayout>
-        <template #header>
-            <div>
-                <h2 class="text-xl font-semibold text-gray-900">
-                    Analytics Dashboard
-                </h2>
-                <p class="text-sm text-gray-600 mt-1">Disease surveillance data insights and trends</p>
-            </div>
-        </template>
-
-        <div class="py-6">
-            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-6">
-
-                <!-- Date Filter -->
-                <div class="bg-white rounded-lg shadow-sm border border-gray-200">
-                    <div class="p-4">
-                        <div class="flex items-end gap-4">
-                            <div class="flex-1">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
-                                <input
-                                    v-model="filters.start_date"
-                                    type="date"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-                                />
-                            </div>
-                            <div class="flex-1">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
-                                <input
-                                    v-model="filters.end_date"
-                                    type="date"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-                                />
-                            </div>
-                            <button
-                                @click="applyFilters"
-                                class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200"
-                            >
-                                Apply Filters
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Summary Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
-                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                        <div class="flex items-center">
-                            <div class="p-2 bg-blue-100 rounded-lg">
-                                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                </svg>
-                            </div>
-                            <div class="ml-4">
-                                <p class="text-sm font-medium text-gray-600">Total Cases</p>
-                                <p class="text-2xl font-semibold text-gray-900">{{ summary.total_cases }}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                        <div class="flex items-center">
-                            <div class="p-2 bg-green-100 rounded-lg">
-                                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                            </div>
-                            <div class="ml-4">
-                                <p class="text-sm font-medium text-gray-600">Confirmed</p>
-                                <p class="text-2xl font-semibold text-gray-900">{{ summary.confirmed_cases }}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                        <div class="flex items-center">
-                            <div class="p-2 bg-red-100 rounded-lg">
-                                <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.268 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                                </svg>
-                            </div>
-                            <div class="ml-4">
-                                <p class="text-sm font-medium text-gray-600">Deaths</p>
-                                <p class="text-2xl font-semibold text-gray-900">{{ summary.deaths }}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                        <div class="flex items-center">
-                            <div class="p-2 bg-orange-100 rounded-lg">
-                                <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                            </div>
-                            <div class="ml-4">
-                                <p class="text-sm font-medium text-gray-600">Active Outbreaks</p>
-                                <p class="text-2xl font-semibold text-gray-900">{{ summary.active_outbreaks }}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                        <div class="flex items-center">
-                            <div class="p-2 bg-gray-100 rounded-lg">
-                                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
-                                </svg>
-                            </div>
-                            <div class="ml-4">
-                                <p class="text-sm font-medium text-gray-600">Fatality Rate</p>
-                                <p class="text-2xl font-semibold text-gray-900">{{ summary.case_fatality_rate }}%</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Charts Grid -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-                    <!-- Cases by Disease -->
-                    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
-                        <div class="p-6">
-                            <h3 class="text-lg font-medium text-gray-900 mb-4">Top Diseases</h3>
-                            <div class="space-y-3">
-                                <div v-for="item in casesByDisease" :key="item.disease" class="flex items-center">
-                                    <div class="w-32 text-sm text-gray-600 truncate">{{ item.disease }}</div>
-                                    <div class="flex-1 mx-3">
-                                        <div class="bg-gray-100 rounded-full h-4 overflow-hidden">
-                                            <div
-                                                class="bg-blue-500 h-full flex items-center justify-end pr-2 text-xs text-white font-medium transition-all duration-300"
-                                                :style="{ width: getPercentage(item.total, getMaxValue(casesByDisease)) + '%' }"
-                                            >
-                                                <span v-if="getPercentage(item.total, getMaxValue(casesByDisease)) > 15">{{ item.total }}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="w-8 text-right text-sm text-gray-900 font-medium">{{ item.total }}</div>
-                                </div>
-                                <div v-if="casesByDisease.length === 0" class="text-center text-gray-500 py-8">
-                                    <svg class="mx-auto h-8 w-8 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                                    </svg>
-                                    No data available
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Cases by Municipality -->
-                    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
-                        <div class="p-6">
-                            <h3 class="text-lg font-medium text-gray-900 mb-4">Cases by Municipality</h3>
-                            <div class="space-y-3">
-                                <div v-for="item in casesByMunicipality" :key="item.municipality" class="flex items-center">
-                                    <div class="w-32 text-sm text-gray-600 truncate">{{ item.municipality }}</div>
-                                    <div class="flex-1 mx-3">
-                                        <div class="bg-gray-100 rounded-full h-4 overflow-hidden">
-                                            <div
-                                                class="bg-green-500 h-full flex items-center justify-end pr-2 text-xs text-white font-medium transition-all duration-300"
-                                                :style="{ width: getPercentage(item.total, getMaxValue(casesByMunicipality)) + '%' }"
-                                            >
-                                                <span v-if="getPercentage(item.total, getMaxValue(casesByMunicipality)) > 15">{{ item.total }}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="w-8 text-right text-sm text-gray-900 font-medium">{{ item.total }}</div>
-                                </div>
-                                <div v-if="casesByMunicipality.length === 0" class="text-center text-gray-500 py-8">
-                                    <svg class="mx-auto h-8 w-8 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    </svg>
-                                    No data available
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Cases by Classification -->
-                    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
-                        <div class="p-6">
-                            <h3 class="text-lg font-medium text-gray-900 mb-4">Case Classification</h3>
-                            <div class="space-y-3">
-                                <div v-for="item in casesByClassification" :key="item.classification" class="flex items-center">
-                                    <div class="w-24 text-sm text-gray-600">{{ item.classification }}</div>
-                                    <div class="flex-1 mx-3">
-                                        <div class="bg-gray-100 rounded-full h-4 overflow-hidden">
-                                            <div
-                                                :class="[
-                                                    'h-full flex items-center justify-end pr-2 text-xs text-white font-medium transition-all duration-300',
-                                                    item.classification === 'Confirmed' ? 'bg-red-500' :
-                                                    item.classification === 'Probable' ? 'bg-orange-500' : 'bg-yellow-500'
-                                                ]"
-                                                :style="{ width: getPercentage(item.total, getMaxValue(casesByClassification)) + '%' }"
-                                            >
-                                                <span v-if="getPercentage(item.total, getMaxValue(casesByClassification)) > 15">{{ item.total }}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="w-8 text-right text-sm text-gray-900 font-medium">{{ item.total }}</div>
-                                </div>
-                                <div v-if="casesByClassification.length === 0" class="text-center text-gray-500 py-8">
-                                    <svg class="mx-auto h-8 w-8 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                                    </svg>
-                                    No data available
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Cases by Status -->
-                    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
-                        <div class="p-6">
-                            <h3 class="text-lg font-medium text-gray-900 mb-4">Report Status</h3>
-                            <div class="space-y-3">
-                                <div v-for="item in casesByStatus" :key="item.status" class="flex items-center">
-                                    <div class="w-24 text-sm text-gray-600">{{ item.status }}</div>
-                                    <div class="flex-1 mx-3">
-                                        <div class="bg-gray-100 rounded-full h-4 overflow-hidden">
-                                            <div
-                                                class="bg-purple-500 h-full flex items-center justify-end pr-2 text-xs text-white font-medium transition-all duration-300"
-                                                :style="{ width: getPercentage(item.total, getMaxValue(casesByStatus)) + '%' }"
-                                            >
-                                                <span v-if="getPercentage(item.total, getMaxValue(casesByStatus)) > 15">{{ item.total }}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="w-8 text-right text-sm text-gray-900 font-medium">{{ item.total }}</div>
-                                </div>
-                                <div v-if="casesByStatus.length === 0" class="text-center text-gray-500 py-8">
-                                    <svg class="mx-auto h-8 w-8 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                                    </svg>
-                                    No data available
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Additional Charts -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <!-- Age Distribution -->
-                    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
-                        <div class="p-6">
-                            <h3 class="text-lg font-medium text-gray-900 mb-4">Age Distribution</h3>
-                            <div class="space-y-3">
-                                <div v-for="item in ageDistribution" :key="item.age_group" class="flex items-center">
-                                    <div class="w-16 text-sm text-gray-600">{{ item.age_group }}</div>
-                                    <div class="flex-1 mx-3">
-                                        <div class="bg-gray-100 rounded-full h-4 overflow-hidden">
-                                            <div
-                                                class="bg-indigo-500 h-full flex items-center justify-end pr-2 text-xs text-white font-medium transition-all duration-300"
-                                                :style="{ width: getPercentage(item.total, getMaxValue(ageDistribution)) + '%' }"
-                                            >
-                                                <span v-if="getPercentage(item.total, getMaxValue(ageDistribution)) > 15">{{ item.total }}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="w-8 text-right text-sm text-gray-900 font-medium">{{ item.total }}</div>
-                                </div>
-                                <div v-if="ageDistribution.length === 0" class="text-center text-gray-500 py-8">
-                                    <svg class="mx-auto h-8 w-8 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                    </svg>
-                                    No data available
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Gender Distribution -->
-                    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
-                        <div class="p-6">
-                            <h3 class="text-lg font-medium text-gray-900 mb-4">Gender Distribution</h3>
-                            <div class="space-y-3">
-                                <div v-for="item in genderDistribution" :key="item.sex" class="flex items-center">
-                                    <div class="w-16 text-sm text-gray-600">{{ item.sex }}</div>
-                                    <div class="flex-1 mx-3">
-                                        <div class="bg-gray-100 rounded-full h-4 overflow-hidden">
-                                            <div
-                                                :class="[
-                                                    'h-full flex items-center justify-end pr-2 text-xs text-white font-medium transition-all duration-300',
-                                                    item.sex === 'Male' ? 'bg-blue-500' :
-                                                    item.sex === 'Female' ? 'bg-pink-500' : 'bg-gray-500'
-                                                ]"
-                                                :style="{ width: getPercentage(item.total, getMaxValue(genderDistribution)) + '%' }"
-                                            >
-                                                <span v-if="getPercentage(item.total, getMaxValue(genderDistribution)) > 15">{{ item.total }}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="w-8 text-right text-sm text-gray-900 font-medium">{{ item.total }}</div>
-                                </div>
-                                <div v-if="genderDistribution.length === 0" class="text-center text-gray-500 py-8">
-                                    <svg class="mx-auto h-8 w-8 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                                    </svg>
-                                    No data available
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Monthly Trend -->
-                <div class="bg-white rounded-lg shadow-sm border border-gray-200">
-                    <div class="p-6">
-                        <h3 class="text-lg font-medium text-gray-900 mb-4">Monthly Trend (Last 12 Months)</h3>
-                        <div class="flex items-end justify-between h-64 gap-2">
-                            <div v-for="item in monthlyTrend" :key="item.month" class="flex-1 flex flex-col items-center">
-                                <div class="text-xs text-gray-600 mb-1">{{ item.total }}</div>
-                                <div
-                                    class="w-full bg-gradient-to-t from-blue-500 to-blue-400 rounded-t transition-all hover:from-blue-600 hover:to-blue-500"
-                                    :style="{ height: Math.max((item.total / getMaxValue(monthlyTrend) * 200), 4) + 'px' }"
-                                ></div>
-                                <div class="text-xs text-gray-600 mt-2 transform rotate-45 origin-left whitespace-nowrap">{{ item.month }}</div>
-                            </div>
-                        </div>
-                        <div v-if="monthlyTrend.length === 0" class="text-center text-gray-500 py-16">
-                            <svg class="mx-auto h-12 w-12 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                            </svg>
-                            No data available for monthly trend
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </AuthenticatedLayout>
-</template>

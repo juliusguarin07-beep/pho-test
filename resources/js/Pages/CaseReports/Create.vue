@@ -8,9 +8,17 @@ interface Props {
     municipalities: Array<{ id: number; name: string }>;
     barangays: Array<{ id: number; name: string; municipality_id: number }>;
     facilities: Array<{ id: number; name: string; type: string }>;
+    userMunicipality?: { id: number; name: string } | null;
+    userRole?: string;
+    userName?: string;
+    userPosition?: string;
+    userContact?: string;
 }
 
 const props = defineProps<Props>();
+
+// Check if user is encoder
+const isEncoder = computed(() => props.userRole === 'encoder');
 
 const currentStep = ref(1);
 const totalSteps = 7;
@@ -34,7 +42,7 @@ const form = useForm({
     occupation: '',
     address: '',
     barangay_id: '',
-    municipality_id: '',
+    municipality_id: (isEncoder.value && props.userMunicipality) ? props.userMunicipality.id.toString() : '',
     contact_number: '',
     pregnancy_status: 'N/A',
     philhealth_number: '',
@@ -80,9 +88,9 @@ const form = useForm({
     quarantine_status: '',
 
     // Section G
-    reporting_health_worker: '',
-    health_worker_designation: '',
-    health_worker_contact: '',
+    reporting_health_worker: props.userName || '',
+    health_worker_designation: props.userPosition || '',
+    health_worker_contact: props.userContact || '',
 });
 
 // Determine if fields should be required (not required for drafts)
@@ -285,7 +293,7 @@ const handleFileUpload = (event: Event) => {
                                         <div v-else-if="step === 6">Contacts</div>
                                         <div v-else-if="step === 7">Reporting</div>
                                     </div>
-                                    <div v-if="availableSteps.indexOf(step) < availableSteps.indexOf(currentStep)" class="text-xs text-green-600 mt-1">✓ Complete</div>
+                                    <div v-if="availableSteps.indexOf(step) < availableSteps.indexOf(currentStep)" class="text-xs text-green-600 mt-1">Complete</div>
                                     <div v-else-if="step === currentStep" class="text-xs text-blue-600 mt-1 font-medium">● Active</div>
                                 </div>
                             </div>
@@ -396,8 +404,8 @@ const handleFileUpload = (event: Event) => {
                                     </label>
                                     <select v-model="form.case_classification" :required="shouldRequireFields"
                                             class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 py-3 px-4">
-                                        <option value="Suspect">🟡 Suspect</option>
-                                        <option value="Confirmed">🔴 Confirmed</option>
+                                        <option value="Suspect">Suspect</option>
+                                        <option value="Confirmed">Confirmed</option>
                                     </select>
                                 </div>
 
@@ -407,9 +415,9 @@ const handleFileUpload = (event: Event) => {
                                     </label>
                                     <select v-model="form.outcome" :required="shouldRequireFields"
                                             class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 py-3 px-4">
-                                        <option value="Alive">✅ Alive</option>
-                                        <option value="Died">💀 Died</option>
-                                        <option value="Ongoing Treatment">🏥 Ongoing Treatment</option>
+                                        <option value="Alive">Alive</option>
+                                        <option value="Died">Died</option>
+                                        <option value="Ongoing Treatment">Ongoing Treatment</option>
                                     </select>
                                 </div>
                             </div>
@@ -531,12 +539,20 @@ const handleFileUpload = (event: Event) => {
                                             Municipality <span class="text-red-500">*</span>
                                         </label>
                                         <select v-model="form.municipality_id" :required="shouldRequireFields"
-                                                class="w-full rounded-xl border-gray-300 shadow-sm focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all duration-200 py-3 px-4">
+                                                :disabled="isEncoder"
+                                                :class="{
+                                                    'w-full rounded-xl border-gray-300 shadow-sm focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all duration-200 py-3 px-4': true,
+                                                    'bg-gray-100 cursor-not-allowed': isEncoder,
+                                                    'hover:bg-gray-50': !isEncoder
+                                                }">
                                             <option value="">Select Municipality</option>
                                             <option v-for="municipality in municipalities" :key="municipality.id" :value="municipality.id">
                                                 {{ municipality.name }}
                                             </option>
                                         </select>
+                                        <p v-if="isEncoder" class="mt-1 text-xs text-gray-500">
+                                            Auto-filled based on your assigned municipality
+                                        </p>
                                     </div>
 
                                     <div>
@@ -845,12 +861,29 @@ const handleFileUpload = (event: Event) => {
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Name of Reporting Health Worker <span class="text-red-500">*</span></label>
-                                    <input v-model="form.reporting_health_worker" type="text" :required="shouldRequireFields" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" />
+                                    <input v-model="form.reporting_health_worker"
+                                           type="text"
+                                           :required="shouldRequireFields"
+                                           :disabled="isEncoder"
+                                           :class="{
+                                               'w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500': true,
+                                               'bg-gray-100 cursor-not-allowed': isEncoder,
+                                               'hover:bg-gray-50': !isEncoder
+                                           }" />
+                                    <p v-if="isEncoder" class="mt-1 text-xs text-gray-500">
+                                        Auto-filled with your account name
+                                    </p>
                                 </div>
 
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Designation</label>
-                                    <select v-model="form.health_worker_designation" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    <select v-model="form.health_worker_designation"
+                                            :disabled="isEncoder"
+                                            :class="{
+                                                'w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500': true,
+                                                'bg-gray-100 cursor-not-allowed': isEncoder,
+                                                'hover:bg-gray-50': !isEncoder
+                                            }">
                                         <option value="">Select Designation</option>
                                         <option value="Nurse">Nurse</option>
                                         <option value="Medical Technologist">Medical Technologist</option>
@@ -858,12 +891,25 @@ const handleFileUpload = (event: Event) => {
                                         <option value="Disease Surveillance Officer">Disease Surveillance Officer</option>
                                         <option value="Other">Other</option>
                                     </select>
+                                    <p v-if="isEncoder" class="mt-1 text-xs text-gray-500">
+                                        Auto-filled with your account position
+                                    </p>
                                 </div>
                             </div>
 
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Contact Number / Email</label>
-                                <input v-model="form.health_worker_contact" type="text" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" />
+                                <input v-model="form.health_worker_contact"
+                                       type="text"
+                                       :disabled="isEncoder"
+                                       :class="{
+                                           'w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500': true,
+                                           'bg-gray-100 cursor-not-allowed': isEncoder,
+                                           'hover:bg-gray-50': !isEncoder
+                                       }" />
+                                <p v-if="isEncoder" class="mt-1 text-xs text-gray-500">
+                                    Auto-filled with your account contact number
+                                </p>
                             </div>
 
                             <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -948,7 +994,7 @@ const handleFileUpload = (event: Event) => {
                                     <span class="font-semibold text-blue-600">Step {{ currentStep }} of {{ totalSteps }}</span>
                                     <span class="mx-2">•</span>
                                     <span v-if="currentStep < totalSteps">{{ Math.round((currentStep / totalSteps) * 100) }}% Complete</span>
-                                    <span v-else class="text-green-600 font-semibold">Ready to Submit! 🎉</span>
+                                    <span v-else class="text-green-600 font-semibold">Ready to Submit!</span>
                                 </p>
                             </div>
                         </div>

@@ -33,15 +33,17 @@ interface Props {
         date_from?: string;
         date_to?: string;
     };
+    userRole: string;
 }
 
 const props = defineProps<Props>();
 
-// Get user role from page props
+// Get user role from page props and props
 const page = usePage();
 const userRoles = computed(() => (page.props.auth as any).user?.roles || []);
 const isEncoder = computed(() => userRoles.value.includes('encoder'));
-const isPesuAdmin = computed(() => userRoles.value.includes('pesu_admin'));
+const isPesuAdmin = computed(() => userRoles.value.includes('pesu_admin') || props.userRole === 'pesu_admin');
+const isValidator = computed(() => userRoles.value.includes('validator') || props.userRole === 'validator');
 
 const filters = ref({
     disease: props.filters.disease || '',
@@ -82,13 +84,13 @@ const getStatusColor = (status: string) => {
 
 const getStatusIcon = (status: string) => {
     const icons: Record<string, string> = {
-        draft: '📝',
-        submitted: '📤',
-        validated: '✅',
-        approved: '🎯',
+        draft: '',
+        submitted: '',
+        validated: '',
+        approved: '',
         returned: '↩️',
     };
-    return icons[status] || '📄';
+    return icons[status] || '';
 };
 
 const getClassificationColor = (classification: string) => {
@@ -140,7 +142,12 @@ const deleteReport = (caseReport: CaseReport) => {
                     </div>
                     <div>
                         <h2 class="text-2xl font-bold text-gray-900">Case Reports</h2>
-                        <p class="text-sm text-gray-600 mt-0.5">Manage and track disease surveillance case investigations</p>
+                        <p class="text-sm text-gray-600 mt-0.5">
+                            <span v-if="isEncoder">Manage your submitted case reports</span>
+                            <span v-else-if="isValidator">Review and validate case reports from your facility</span>
+                            <span v-else-if="isPesuAdmin">Manage and track disease surveillance case investigations across all municipalities</span>
+                            <span v-else>Manage and track disease surveillance case investigations</span>
+                        </p>
                     </div>
                 </div>
                 <Link
@@ -171,7 +178,7 @@ const deleteReport = (caseReport: CaseReport) => {
                             <h3 class="text-lg font-bold text-gray-900">Filters</h3>
                         </div>
 
-                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
+                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2" :class="isPesuAdmin ? 'lg:grid-cols-5' : 'lg:grid-cols-4'">
                             <div>
                                 <label class="block mb-2 text-sm font-semibold text-gray-700">Disease</label>
                                 <select v-model="filters.disease"
@@ -183,7 +190,7 @@ const deleteReport = (caseReport: CaseReport) => {
                                 </select>
                             </div>
 
-                            <div>
+                            <div v-if="isPesuAdmin">
                                 <label class="block mb-2 text-sm font-semibold text-gray-700">Municipality</label>
                                 <select v-model="filters.municipality"
                                         class="w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-200 py-2.5 px-3">
@@ -199,10 +206,10 @@ const deleteReport = (caseReport: CaseReport) => {
                                 <select v-model="filters.status"
                                         class="w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-200 py-2.5 px-3">
                                     <option value="">All Status</option>
-                                    <option value="draft">📝 Draft</option>
-                                    <option value="submitted">📤 Submitted</option>
-                                    <option value="validated">✅ Validated</option>
-                                    <option value="approved">🎯 Approved</option>
+                                    <option value="draft">Draft</option>
+                                    <option value="submitted">Submitted</option>
+                                    <option value="validated">Validated</option>
+                                    <option value="approved">Approved</option>
                                     <option value="returned">↩️ Returned</option>
                                 </select>
                             </div>
