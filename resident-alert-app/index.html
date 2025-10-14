@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="/favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#10b981">
+    <meta name="description" content="Real-time outbreak alerts and health advisories from Pangasinan Provincial Health Office">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="PHO Alert">
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+    <title>PHO Alert - Disease Surveillance</title>
+    <style>
+      /* Initial Loading Screen */
+      #app-loading {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        z-index: 9999;
+      }
+
+      .loading-content {
+        text-align: center;
+        color: white;
+      }
+
+      .loading-logo {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 20px;
+        background: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        animation: bounce 2s ease-in-out infinite;
+      }
+
+      .loading-logo svg {
+        width: 48px;
+        height: 48px;
+        fill: #059669;
+      }
+
+      .loading-title {
+        font-size: 28px;
+        font-weight: bold;
+        margin-bottom: 8px;
+      }
+
+      .loading-subtitle {
+        font-size: 14px;
+        opacity: 0.9;
+        margin-bottom: 24px;
+      }
+
+      .loading-dots {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+      }
+
+      .loading-dot {
+        width: 8px;
+        height: 8px;
+        background: white;
+        border-radius: 50%;
+        animation: pulse 1.5s ease-in-out infinite;
+      }
+
+      .loading-dot:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+
+      .loading-dot:nth-child(3) {
+        animation-delay: 0.4s;
+      }
+
+      @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-15px); }
+      }
+
+      @keyframes pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.3; transform: scale(0.8); }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Initial Loading Screen -->
+    <div id="app-loading">
+      <div class="loading-content">
+        <div class="loading-logo">
+          <svg viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+          </svg>
+        </div>
+        <div class="loading-title">PHO Alert</div>
+        <div class="loading-subtitle">Disease Surveillance</div>
+        <div class="loading-dots">
+          <div class="loading-dot"></div>
+          <div class="loading-dot"></div>
+          <div class="loading-dot"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- App Container -->
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

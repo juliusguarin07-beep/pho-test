@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test DateTime Formatting</title>
+</head>
+<body>
+    <h2>Testing DateTime Formatting</h2>
+    <div id="results"></div>
+
+    <script>
+        function formatReturnedDateTime(dateTimeString) {
+            // Parse the datetime string from the database (assumed to be in UTC)
+            const date = new Date(dateTimeString + 'Z'); // Adding 'Z' to explicitly treat as UTC
+
+            // Format to a more readable local time
+            const options = {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true,
+                timeZoneName: 'short'
+            };
+
+            return date.toLocaleString('en-US', options);
+        }
+
+        const testDateTime = '2025-10-14 02:48:10';
+        const results = document.getElementById('results');
+
+        results.innerHTML = `
+            <p><strong>Original:</strong> ${testDateTime}</p>
+            <p><strong>Old method (toLocaleDateString + toLocaleTimeString):</strong><br>
+               ${new Date(testDateTime).toLocaleDateString()} at ${new Date(testDateTime).toLocaleTimeString()}</p>
+            <p><strong>New formatted method:</strong><br>
+               ${formatReturnedDateTime(testDateTime)}</p>
+            <p><strong>Current timezone:</strong> ${Intl.DateTimeFormat().resolvedOptions().timeZone}</p>
+        `;
+    </script>
+</body>
+</html>

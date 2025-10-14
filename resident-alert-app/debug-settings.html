@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Settings Debug</title>
+</head>
+<body>
+    <h1>Current Settings Debug</h1>
+    <div id="debug-info"></div>
+
+    <script>
+        // Check localStorage for settings
+        const settings = localStorage.getItem('pho-alert-settings');
+        const debugDiv = document.getElementById('debug-info');
+
+        if (settings) {
+            debugDiv.innerHTML = `
+                <h3>Stored Settings:</h3>
+                <pre>${settings}</pre>
+                <h3>Parsed Settings:</h3>
+                <pre>${JSON.stringify(JSON.parse(settings), null, 2)}</pre>
+            `;
+        } else {
+            debugDiv.innerHTML = '<p>No settings found in localStorage</p>';
+        }
+    </script>
+</body>
+</html>

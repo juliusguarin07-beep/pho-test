@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clear Settings</title>
+</head>
+<body>
+    <h1>Clear LocalStorage Settings</h1>
+    <button onclick="clearSettings()">Clear PHO Alert Settings</button>
+    <button onclick="showSettings()">Show Current Settings</button>
+    <div id="output"></div>
+
+    <script>
+        function clearSettings() {
+            localStorage.removeItem('pho-alert-settings');
+            document.getElementById('output').innerHTML = '<p>Settings cleared!</p>';
+        }
+
+        function showSettings() {
+            const settings = localStorage.getItem('pho-alert-settings');
+            const output = document.getElementById('output');
+            if (settings) {
+                output.innerHTML = '<pre>' + JSON.stringify(JSON.parse(settings), null, 2) + '</pre>';
+            } else {
+                output.innerHTML = '<p>No settings found</p>';
+            }
+        }
+
+        // Show on load
+        showSettings();
+    </script>
+</body>
+</html>

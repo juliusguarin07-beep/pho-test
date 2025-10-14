@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Map API Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .alert { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .red { background-color: #fee2e2; border: 1px solid #dc2626; }
+        .yellow { background-color: #fef3c7; border: 1px solid #d97706; }
+        .green { background-color: #d1fae5; border: 1px solid #059669; }
+        .orange { background-color: #fed7aa; border: 1px solid #ea580c; }
+    </style>
+</head>
+<body>
+    <h1>Map API Test</h1>
+    <button onclick="testAPI()">Test API Endpoint</button>
+    <div id="results"></div>
+
+    <script>
+        async function testAPI() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<p>Loading...</p>';
+
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/v1/public/alerts-map', {
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('API Response:', data);
+
+                if (data.success && data.data) {
+                    let html = `<h2>Found ${data.data.length} alerts:</h2>`;
+
+                    data.data.forEach((alert, index) => {
+                        const colorClass = alert.alert_level.toLowerCase();
+                        html += `
+                            <div class="alert ${colorClass}">
+                                <h3>${alert.title} (${alert.disease})</h3>
+                                <p><strong>Municipality:</strong> ${alert.municipality}</p>
+                                <p><strong>Alert Level:</strong> ${alert.alert_level}</p>
+                                <p><strong>Coordinates:</strong> ${alert.coordinates.latitude}, ${alert.coordinates.longitude}</p>
+                                <p><strong>Cases:</strong> ${alert.cases}</p>
+                                <p><strong>Date:</strong> ${alert.date}</p>
+                                <p><strong>Affected Barangays:</strong> ${alert.affected_barangays.join(', ')}</p>
+                            </div>
+                        `;
+                    });
+
+                    resultsDiv.innerHTML = html;
+                } else {
+                    resultsDiv.innerHTML = '<p>API returned no data or failed</p>';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                resultsDiv.innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
