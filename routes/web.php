@@ -7,6 +7,7 @@ use App\Http\Controllers\OutbreakAlertController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\FacilityController;
 use App\Http\Controllers\AnalyticsController;
+use App\Http\Controllers\ValidatorAnalyticsController;
 use App\Models\OutbreakAlert;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -72,8 +73,27 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/case-reports/{caseReport}/return', [CaseReportController::class, 'returnReport'])->name('case-reports.return');
     Route::get('/case-reports-export', [CaseReportController::class, 'export'])->name('case-reports.export');
 
-    // Analytics
-    Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
+    // Analytics - Role-based routing
+    Route::get('/analytics', function () {
+        $user = \Illuminate\Support\Facades\Auth::user();
+        if ($user->hasRole('pesu_admin')) {
+            return redirect()->route('analytics.pesu');
+        } elseif ($user->hasRole('validator')) {
+            return redirect()->route('analytics.validator');
+        }
+        // Default fallback for other roles
+        return redirect()->route('dashboard');
+    })->name('analytics.index');
+
+    // PESU Admin Analytics (Full Epidemiologic Surveillance)
+    Route::get('/analytics/pesu', [AnalyticsController::class, 'index'])
+          ->middleware('role:pesu_admin')
+          ->name('analytics.pesu');
+
+    // Validator Analytics (Simplified Dashboard)
+    Route::get('/analytics/validator', [ValidatorAnalyticsController::class, 'index'])
+          ->middleware('role:validator')
+          ->name('analytics.validator');
 
     // Outbreak Alerts
     Route::resource('outbreak-alerts', OutbreakAlertController::class);
