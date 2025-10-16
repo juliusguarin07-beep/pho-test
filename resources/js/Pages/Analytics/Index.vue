@@ -2,16 +2,31 @@
   <Head title="Epidemiologic Surveillance Analytics" />
   <AuthenticatedLayout>
     <template #header>
-      <h2 class="text-xl font-semibold leading-tight text-gray-800">
-        Epidemiologic Surveillance Analytics Dashboard
-      </h2>
+      <div class="flex items-center justify-between">
+        <h2 class="text-xl font-semibold leading-tight text-gray-800">
+          Epidemiologic Surveillance Analytics Dashboard
+        </h2>
+        <div class="flex items-center space-x-4">
+          <!-- Automatic Alerts Button for PESU Admin -->
+          <Link
+            v-if="isPESUAdmin"
+            :href="route('automatic-alerts.index')"
+            class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 focus:bg-red-700 active:bg-red-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition ease-in-out duration-150"
+          >
+            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.487 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+            </svg>
+            Automatic Alerts
+          </Link>
+        </div>
+      </div>
     </template>
 
     <div class="py-12">
       <div class="mx-auto space-y-8 max-w-7xl sm:px-6 lg:px-8">
 
         <!-- Summary Cards -->
-        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
+        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
           <div class="p-6 bg-white shadow sm:rounded-lg">
             <dt class="text-sm font-medium text-gray-500 truncate">Total Cases</dt>
             <dd class="mt-1 text-3xl font-semibold text-gray-900">{{ summary?.total_cases || 0 }}</dd>
@@ -27,10 +42,6 @@
           <div class="p-6 bg-white shadow sm:rounded-lg">
             <dt class="text-sm font-medium text-gray-500 truncate">Outbreaks</dt>
             <dd class="mt-1 text-3xl font-semibold text-orange-900">{{ summary?.active_outbreaks || 0 }}</dd>
-          </div>
-          <div class="p-6 bg-white shadow sm:rounded-lg">
-            <dt class="text-sm font-medium text-gray-500 truncate">CFR</dt>
-            <dd class="mt-1 text-3xl font-semibold text-purple-900">{{ (summary?.case_fatality_rate || 0).toFixed(2) }}%</dd>
           </div>
         </div>
 
@@ -101,16 +112,39 @@
               <div
                 v-for="alert in thresholdAnalysis"
                 :key="alert.disease"
-                :class="['rounded-lg border p-4', getAlertColor(alert.alert_level)]"
+                :class="['rounded-lg border-2 p-6 shadow-lg', getAlertColor(alert.alert_level)]"
               >
-                <div class="flex items-center justify-between">
-                  <div>
-                    <h5 class="font-medium">{{ getAlertIcon(alert.alert_level) }} {{ alert.disease }}</h5>
-                    <p class="text-sm">{{ alert.current_cases }} cases ({{ alert.percentage_of_threshold.toFixed(1) }}% of threshold)</p>
+                <div class="space-y-4">
+                  <!-- Header with Disease and Alert Level -->
+                  <div class="flex items-start justify-between">
+                    <div>
+                      <h5 class="text-lg font-bold">{{ getAlertIcon(alert.alert_level) }} {{ alert.disease }}</h5>
+                      <div class="mt-1 text-2xl font-extrabold">{{ alert.alert_level.toUpperCase() }}</div>
+                    </div>
                   </div>
-                  <div class="text-right">
-                    <div class="text-lg font-bold">{{ alert.alert_level.toUpperCase() }}</div>
-                    <div class="text-xs">Threshold: {{ alert.threshold }}</div>
+
+                  <!-- Current Cases -->
+                  <div class="bg-white bg-opacity-20 rounded-lg p-3">
+                    <div class="text-sm text-gray-700 font-medium">Current Cases</div>
+                    <div class="text-3xl font-bold">{{ alert.current_cases }}</div>
+                  </div>
+
+                  <!-- Threshold Information - Made Prominent -->
+                  <div class="bg-white bg-opacity-30 rounded-lg p-4 border border-white border-opacity-50">
+                    <div class="text-center">
+                      <div class="text-sm font-semibold text-gray-800 uppercase tracking-wide">Threshold</div>
+                      <div class="text-2xl font-extrabold text-gray-900 mt-1">{{ alert.threshold }}</div>
+                      <div class="text-sm text-gray-700 mt-2">
+                        {{ alert.percentage_of_threshold.toFixed(1) }}% of threshold reached
+                      </div>
+                      <div class="w-full bg-gray-200 rounded-full h-2 mt-3">
+                        <div
+                          class="h-2 rounded-full transition-all duration-300"
+                          :class="alert.percentage_of_threshold > 100 ? 'bg-red-500' : alert.percentage_of_threshold > 75 ? 'bg-yellow-500' : 'bg-green-500'"
+                          :style="{ width: Math.min(alert.percentage_of_threshold, 100) + '%' }"
+                        ></div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -218,7 +252,7 @@
                   </div>
                   <div class="h-2 mt-2 bg-gray-200 rounded-full">
                     <div
-                      :class="['h-2 rounded-full', sex.sex === 'male' ? 'bg-blue-500' : 'bg-pink-500']"
+                      :class="['h-2 rounded-full', sex.sex === 'Male' ? 'bg-blue-500' : 'bg-pink-500']"
                       :style="{ width: `${(sex.total / summary.total_cases) * 100}%` }"
                     ></div>
                   </div>
@@ -344,11 +378,18 @@
 
 <script setup lang="ts">
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import { Head } from "@inertiajs/vue3";
-import { ref, onMounted, nextTick, watch } from "vue";
+import { Head, Link, usePage } from "@inertiajs/vue3";
+import { ref, onMounted, nextTick, watch, computed } from "vue";
 import { Chart, registerables } from "chart.js";
 
 Chart.register(...registerables);
+
+// Get user roles for role-based UI
+const page = usePage();
+const auth = computed(() => page.props.auth as any);
+const user = computed(() => auth.value.user);
+const userRoles = computed(() => user.value?.roles || []);
+const isPESUAdmin = computed(() => userRoles.value.includes('pesu_admin'));
 
 interface Summary {
     total_cases: number;
@@ -625,13 +666,20 @@ const initializeCharts = async () => {
     // Sex Distribution
     const sexDistributionCtx = document.getElementById("sexDistributionChart") as HTMLCanvasElement;
     if (sexDistributionCtx && sexDistribution.length) {
+        // Create colors array based on sex values
+        const colors = sexDistribution.map(item => {
+            if (item.sex === 'Male') return 'rgba(59, 130, 246, 0.8)'  // Blue for Male
+            if (item.sex === 'Female') return 'rgba(236, 72, 153, 0.8)'  // Pink for Female
+            return 'rgba(156, 163, 175, 0.8)'  // Gray for Other
+        })
+
         chartInstances.value.sexDistribution = new Chart(sexDistributionCtx, {
             type: "pie",
             data: {
                 labels: sexDistribution.map(item => item.sex),
                 datasets: [{
                     data: sexDistribution.map(item => item.total),
-                    backgroundColor: ["rgba(59, 130, 246, 0.8)", "rgba(236, 72, 153, 0.8)"],
+                    backgroundColor: colors,
                     borderWidth: 2
                 }]
             },

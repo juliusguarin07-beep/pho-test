@@ -52,12 +52,18 @@ export const useSettingsStore = defineStore('settings', () => {
   // Actions
   async function fetchMunicipalities() {
     try {
+      console.log('Fetching municipalities...')
       const response = await alertService.getMunicipalities()
+      console.log('Municipalities response:', response)
       if (response.success) {
         municipalities.value = response.data
+        console.log('Loaded', municipalities.value.length, 'municipalities')
+      } else {
+        console.error('Failed to fetch municipalities:', response)
       }
     } catch (err: any) {
       console.error('Error fetching municipalities:', err)
+      console.error('Error details:', err.response?.data || err.message)
     }
   }
 

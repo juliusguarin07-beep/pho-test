@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\OutbreakAlert;
 use App\Models\Disease;
 use App\Models\Municipality;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class OutbreakAlertController extends Controller
@@ -29,12 +31,23 @@ class OutbreakAlertController extends Controller
      */
     public function create()
     {
+        // Get diseases that have confirmed cases (validated or approved status)
         $diseases = \App\Models\Disease::where('is_active', true)
+            ->whereHas('caseReports', function($query) {
+                $query->where('case_classification', 'Confirmed')
+                      ->whereIn('status', ['validated', 'approved']);
+            })
             ->orderBy('category')
             ->orderBy('name')
             ->get();
 
-        $municipalities = \App\Models\Municipality::orderBy('name')->get();
+        // Get municipalities that have confirmed cases (validated or approved status)
+        $municipalities = \App\Models\Municipality::whereHas('caseReports', function($query) {
+            $query->where('case_classification', 'Confirmed')
+                  ->whereIn('status', ['validated', 'approved']);
+        })
+        ->orderBy('name')
+        ->get();
 
         return Inertia::render('OutbreakAlerts/Create', [
             'diseases' => $diseases,
@@ -71,8 +84,14 @@ class OutbreakAlertController extends Controller
             'alert_end_date' => $validated['alert_end_date'] ?? null,
             'health_advisory' => $validated['health_advisory'] ?? null,
             'status' => $validated['status'],
-            'created_by' => auth()->id(),
+            'created_by' => Auth::id(),
         ]);
+
+        // Create notifications for published alerts
+        if ($validated['status'] === 'published') {
+            $notificationService = new NotificationService();
+            $notificationService->createOutbreakAlertNotification($alert);
+        }
 
         return redirect()->route('outbreak-alerts.index')
             ->with('success', 'Outbreak alert created successfully.');
@@ -95,8 +114,23 @@ class OutbreakAlertController extends Controller
      */
     public function edit(OutbreakAlert $outbreakAlert)
     {
-        $diseases = Disease::orderBy('name')->get(['id', 'name', 'category']);
-        $municipalities = Municipality::orderBy('name')->get(['id', 'name']);
+        // Get diseases that have confirmed cases (validated or approved status)
+        $diseases = Disease::where('is_active', true)
+            ->whereHas('caseReports', function($query) {
+                $query->where('case_classification', 'Confirmed')
+                      ->whereIn('status', ['validated', 'approved']);
+            })
+            ->orderBy('category')
+            ->orderBy('name')
+            ->get(['id', 'name', 'category']);
+
+        // Get municipalities that have confirmed cases (validated or approved status)
+        $municipalities = Municipality::whereHas('caseReports', function($query) {
+            $query->where('case_classification', 'Confirmed')
+                  ->whereIn('status', ['validated', 'approved']);
+        })
+        ->orderBy('name')
+        ->get(['id', 'name']);
 
         return inertia('OutbreakAlerts/Edit', [
             'alert' => $outbreakAlert->load(['disease', 'municipality']),

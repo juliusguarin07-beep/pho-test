@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CaseReportController;
 use App\Http\Controllers\OutbreakAlertController;
+use App\Http\Controllers\AutomaticAlertController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\FacilityController;
 use App\Http\Controllers\AnalyticsController;
@@ -100,6 +101,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/outbreak-alerts/{outbreakAlert}/publish', [OutbreakAlertController::class, 'publish'])->name('outbreak-alerts.publish');
     Route::post('/outbreak-alerts/{outbreakAlert}/resolve', [OutbreakAlertController::class, 'resolve'])->name('outbreak-alerts.resolve');
     Route::post('/outbreak-alerts/{outbreakAlert}/conclude', [OutbreakAlertController::class, 'conclude'])->name('outbreak-alerts.conclude');
+
+    // Automatic Alerts (PESU Admin only)
+    Route::middleware(['role:pesu_admin'])->group(function () {
+        Route::get('/automatic-alerts', [AutomaticAlertController::class, 'index'])->name('automatic-alerts.index');
+        Route::get('/automatic-alerts/{alert}', [AutomaticAlertController::class, 'show'])->name('automatic-alerts.show');
+        Route::post('/automatic-alerts/{alert}/publish', [AutomaticAlertController::class, 'publish'])->name('automatic-alerts.publish');
+        Route::post('/automatic-alerts/{alert}/archive', [AutomaticAlertController::class, 'archive'])->name('automatic-alerts.archive');
+        Route::post('/automatic-alerts/trigger-check', [AutomaticAlertController::class, 'triggerCheck'])->name('automatic-alerts.trigger-check');
+        Route::put('/automatic-alerts/{alert}', [AutomaticAlertController::class, 'update'])->name('automatic-alerts.update');
+    });
 
     // User Management (PESU Admin only)
     Route::middleware(['role:pesu_admin'])->group(function () {

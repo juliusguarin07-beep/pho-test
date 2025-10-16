@@ -156,7 +156,6 @@ class ValidatorAnalyticsController extends Controller
                 'total_cases' => $totalCases,
                 'confirmed_cases' => $confirmedCases,
                 'deaths' => $deaths,
-                'case_fatality_rate' => $totalCases > 0 ? round(($deaths / $totalCases) * 100, 2) : 0,
             ],
             // Demographics
             'ageGroups' => $ageGroups,

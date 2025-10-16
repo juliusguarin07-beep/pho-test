@@ -47,7 +47,7 @@
         </div>
 
         <!-- Facility Summary Cards -->
-        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           <div class="p-6 bg-white shadow sm:rounded-lg">
             <dt class="text-sm font-medium text-gray-500 truncate">Total Cases (Facility)</dt>
             <dd class="mt-1 text-3xl font-semibold text-gray-900">{{ summary?.total_cases || 0 }}</dd>
@@ -59,10 +59,6 @@
           <div class="p-6 bg-white shadow sm:rounded-lg">
             <dt class="text-sm font-medium text-gray-500 truncate">Deaths</dt>
             <dd class="mt-1 text-3xl font-semibold text-red-900">{{ summary?.deaths || 0 }}</dd>
-          </div>
-          <div class="p-6 bg-white shadow sm:rounded-lg">
-            <dt class="text-sm font-medium text-gray-500 truncate">CFR</dt>
-            <dd class="mt-1 text-3xl font-semibold text-purple-900">{{ (summary?.case_fatality_rate || 0).toFixed(2) }}%</dd>
           </div>
         </div>
 
@@ -270,22 +266,27 @@ const initializeCharts = async () => {
 
   // Sex Distribution Pie Chart
   if (sexChart.value && props.sexDistribution) {
+    // Create colors array based on sex values
+    const colors = props.sexDistribution.map(item => {
+      if (item.sex === 'Male') return 'rgba(59, 130, 246, 0.8)'  // Blue for Male
+      if (item.sex === 'Female') return 'rgba(236, 72, 153, 0.8)'  // Pink for Female
+      return 'rgba(156, 163, 175, 0.8)'  // Gray for Other
+    })
+
+    const borderColors = props.sexDistribution.map(item => {
+      if (item.sex === 'Male') return 'rgb(59, 130, 246)'
+      if (item.sex === 'Female') return 'rgb(236, 72, 153)'
+      return 'rgb(156, 163, 175)'
+    })
+
     new Chart(sexChart.value, {
       type: 'doughnut',
       data: {
         labels: props.sexDistribution.map(item => item.sex),
         datasets: [{
           data: props.sexDistribution.map(item => item.total),
-          backgroundColor: [
-            'rgba(59, 130, 246, 0.8)',  // Blue for Male
-            'rgba(236, 72, 153, 0.8)',  // Pink for Female
-            'rgba(156, 163, 175, 0.8)'  // Gray for Other
-          ],
-          borderColor: [
-            'rgb(59, 130, 246)',
-            'rgb(236, 72, 153)',
-            'rgb(156, 163, 175)'
-          ],
+          backgroundColor: colors,
+          borderColor: borderColors,
           borderWidth: 2
         }]
       },

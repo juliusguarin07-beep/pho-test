@@ -22,7 +22,15 @@
         <!-- Municipality Select -->
         <div class="mb-4">
           <label class="block text-sm font-semibold text-gray-700 mb-2">Municipality</label>
+
+          <!-- Loading state -->
+          <div v-if="municipalities.length === 0" class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-500">
+            Loading municipalities...
+          </div>
+
+          <!-- Municipality dropdown -->
           <select
+            v-else
             v-model="selectedMunicipality"
             @change="onMunicipalityChange"
             class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
@@ -36,6 +44,11 @@
               {{ municipality.name }}
             </option>
           </select>
+
+          <!-- Debug info -->
+          <p class="text-xs text-gray-500 mt-1">
+            {{ municipalities.length }} municipalities available
+          </p>
         </div>
 
         <!-- Barangay Select -->
@@ -223,7 +236,18 @@ const loadSettings = () => {
   notificationsEnabled.value = settingsStore.settings.notifications_enabled
 }
 
-onMounted(() => {
+onMounted(async () => {
+  // Ensure municipalities are loaded
+  if (settingsStore.municipalities.length === 0) {
+    await settingsStore.fetchMunicipalities()
+  }
+
+  // Load user settings
   loadSettings()
+
+  // If user has a selected municipality but no barangays loaded, fetch them
+  if (selectedMunicipality.value && settingsStore.filteredBarangays.length === 0) {
+    await settingsStore.fetchBarangays(selectedMunicipality.value)
+  }
 })
 </script>

@@ -17,6 +17,24 @@ const api = axios.create({
   }
 })
 
+// Add request interceptor for debugging
+api.interceptors.request.use(request => {
+  console.log('Making API request:', request.method?.toUpperCase(), request.url)
+  return request
+})
+
+// Add response interceptor for debugging
+api.interceptors.response.use(
+  response => {
+    console.log('API response:', response.status, response.config.url)
+    return response
+  },
+  error => {
+    console.error('API error:', error.response?.status, error.config?.url, error.message)
+    return Promise.reject(error)
+  }
+)
+
 export const alertService = {
   // Get all active alerts
   async getAlerts(params?: {

@@ -56,7 +56,7 @@ class OutbreakAlertService
         $description = OutbreakAlert::getAlertDescription($alertLevel);
         $icon = OutbreakAlert::getAlertIcon($alertLevel);
 
-        OutbreakAlert::create([
+        $alert = OutbreakAlert::create([
             'disease_id' => $diseaseId,
             'municipality_id' => $municipalityId,
             'alert_title' => "{$icon} Automatic Alert: {$disease->name} in {$municipality->name}",
@@ -75,6 +75,10 @@ class OutbreakAlertService
             'created_by' => 1, // System user
             'published_at' => now(),
         ]);
+
+        // Create notifications for automatic alerts
+        $notificationService = new \App\Services\NotificationService();
+        $notificationService->createOutbreakAlertNotification($alert);
     }
 
     /**
@@ -180,12 +184,63 @@ class OutbreakAlertService
 
     /**
      * Get all current automatic alerts for dashboard display
-     * Only returns alerts that still meet the threshold based on actual case counts
+     * Shows both draft and published automatic alerts for internal users
      */
     public function getCurrentAutomaticAlerts()
     {
         $alerts = OutbreakAlert::where('is_automatic', true)
+            ->whereIn('status', ['draft', 'published']) // Show both draft and published for internal users
+            ->with(['disease', 'municipality'])
+            ->get();
+
+        // Filter alerts to ensure they still meet the threshold based on actual case counts
+        $validAlerts = $alerts->filter(function ($alert) {
+            // For draft alerts, use the stored case count and don't auto-deactivate
+            if ($alert->status === 'draft') {
+                return true; // Always show draft alerts to internal users
+            }
+
+            // For published alerts, validate against current case counts
+            $actualCaseCount = CaseReport::where('disease_id', $alert->disease_id)
+                ->where('municipality_id', $alert->municipality_id)
+                ->where('status', '!=', 'draft')
+                ->where('created_at', '>=', Carbon::now()->subDays(30))
+                ->count();
+
+            // Check if the alert is still valid based on actual case count
+            $alertLevel = OutbreakAlert::getAlertLevel($actualCaseCount);
+
+            // If no alert level is needed anymore, mark this alert as resolved
+            if (!$alertLevel) {
+                $alert->update([
+                    'is_active' => false,
+                    'resolved_at' => now(),
+                ]);
+                return false;
+            }
+
+            // Update the alert with actual case count if it differs
+            if ($alert->case_count != $actualCaseCount) {
+                $alert->update([
+                    'case_count' => $actualCaseCount,
+                    'alert_level' => ucfirst($alertLevel),
+                ]);
+            }
+
+            return true;
+        });
+
+        return $validAlerts->sortByDesc('case_count')->values();
+    }
+
+    /**
+     * Get only published automatic alerts for public consumption (residents)
+     */
+    public function getPublishedAutomaticAlerts()
+    {
+        $alerts = OutbreakAlert::where('is_automatic', true)
             ->where('is_active', true)
+            ->where('status', 'published') // Only published for residents
             ->with(['disease', 'municipality'])
             ->get();
 

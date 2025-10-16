@@ -6,6 +6,7 @@ use App\Models\CaseReport;
 use App\Models\Disease;
 use App\Models\Municipality;
 use App\Models\OutbreakAlert;
+use App\Services\AutomaticAlertService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -15,6 +16,15 @@ class AnalyticsController extends Controller
 {
     public function index(Request $request)
     {
+        // Check for automatic alerts when analytics page is accessed
+        try {
+            $automaticAlertService = new AutomaticAlertService();
+            $automaticAlertService->checkAndCreateAutomaticAlerts();
+        } catch (\Exception $e) {
+            // Log error but don't interrupt analytics page loading
+            \Log::error('Error checking automatic alerts: ' . $e->getMessage());
+        }
+
         // Date range filter (default: last 30 days)
         $startDate = $request->input('start_date', now()->subDays(30)->toDateString());
         $endDate = $request->input('end_date', now()->toDateString());
@@ -56,23 +66,29 @@ class AnalyticsController extends Controller
             ->groupBy('disease_id')
             ->get()
             ->map(function ($item) {
-                // Simulate historical average (in real scenario, use 5-year data)
-                $historicalAvg = max(1, round($item->current_cases * 0.7)); // Simulated baseline
-                $threshold = $historicalAvg + (2 * sqrt($historicalAvg)); // +2SD
+                // Fixed threshold system: 10+ yellow, 25+ orange, 50+ red
+                $yellowThreshold = 10;
+                $orangeThreshold = 25;
+                $redThreshold = 50;
 
                 $alertLevel = 'normal';
-                if ($item->current_cases >= $threshold * 2) {
+                $threshold = $yellowThreshold; // Base threshold for calculations
+
+                if ($item->current_cases >= $redThreshold) {
                     $alertLevel = 'red';
-                } elseif ($item->current_cases >= $threshold * 1.5) {
+                    $threshold = $redThreshold;
+                } elseif ($item->current_cases >= $orangeThreshold) {
                     $alertLevel = 'orange';
-                } elseif ($item->current_cases >= $threshold) {
+                    $threshold = $orangeThreshold;
+                } elseif ($item->current_cases >= $yellowThreshold) {
                     $alertLevel = 'yellow';
+                    $threshold = $yellowThreshold;
                 }
 
                 return [
                     'disease' => $item->disease->name ?? 'Unknown',
                     'current_cases' => $item->current_cases,
-                    'threshold' => round($threshold),
+                    'threshold' => $threshold,
                     'alert_level' => $alertLevel,
                     'percentage_of_threshold' => round(($item->current_cases / $threshold) * 100),
                 ];
@@ -319,7 +335,6 @@ class AnalyticsController extends Controller
                 'confirmed_cases' => $confirmedCases,
                 'deaths' => $deaths,
                 'active_outbreaks' => $activeOutbreaks,
-                'case_fatality_rate' => $totalCases > 0 ? round(($deaths / $totalCases) * 100, 2) : 0,
             ],
             // Epidemiologic Surveillance Analytics
             'weeklyTrend' => $weeklyTrend,

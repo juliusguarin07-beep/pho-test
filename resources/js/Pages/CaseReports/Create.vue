@@ -227,28 +227,19 @@ const handleFileUpload = (event: Event) => {
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-4">
-                    <div class="p-2 bg-blue-100 rounded-lg">
-                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                    </div>
-                    <div>
-                        <h2 class="text-2xl font-bold text-gray-900">New Case Investigation Form</h2>
-                        <p class="text-sm text-gray-600 mt-0.5">Complete all required sections to submit case report</p>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-3">
-                    <div class="text-right">
-                        <div class="text-xs text-gray-500 uppercase tracking-wide">Progress</div>
-                        <div class="text-lg font-bold text-blue-600">{{ currentStep }}/{{ totalSteps }}</div>
-                    </div>
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900 sm:text-3xl">
+                        New Case Investigation Form
+                    </h2>
+                    <p class="mt-2 text-sm text-gray-600">
+                        Complete all required sections to submit case report
+                    </p>
                 </div>
             </div>
         </template>
 
-        <div class="py-8 bg-gray-50 min-h-screen">
-            <div class="mx-auto max-w-6xl sm:px-6 lg:px-8">
+        <div class="py-12">
+            <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
 
                 <!-- Modern Progress Stepper -->
                 <div class="mb-8 bg-white rounded-2xl shadow-lg p-8">
@@ -271,7 +262,7 @@ const handleFileUpload = (event: Event) => {
                                     'bg-white border-2 border-gray-300 text-gray-400 hover:border-gray-400 hover:text-gray-600'
                                 ]"
                                 @click="goToStep(step)">
-                                    <span v-if="step < currentStep">
+                                    <span v-if="availableSteps.indexOf(step) < availableSteps.indexOf(currentStep)">
                                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
                                         </svg>
@@ -285,42 +276,21 @@ const handleFileUpload = (event: Event) => {
                                         'text-xs font-semibold transition-colors duration-300 hover:text-blue-800',
                                         step <= currentStep ? 'text-blue-600' : 'text-gray-400 hover:text-gray-700'
                                     ]">
-                                        <div v-if="step === 1">Case ID</div>
-                                        <div v-else-if="step === 2">Patient</div>
-                                        <div v-else-if="step === 3">Clinical</div>
-                                        <div v-else-if="step === 4">Laboratory</div>
-                                        <div v-else-if="step === 5">Exposure</div>
-                                        <div v-else-if="step === 6">Contacts</div>
-                                        <div v-else-if="step === 7">Reporting</div>
+                                        {{
+                                            step === 1 ? 'Case ID' :
+                                            step === 2 ? 'Patient' :
+                                            step === 3 ? 'Clinical' :
+                                            step === 4 ? 'Laboratory' :
+                                            step === 5 ? 'Exposure' :
+                                            step === 6 ? 'Contacts' :
+                                            'Reporting'
+                                        }}
                                     </div>
                                     <div v-if="availableSteps.indexOf(step) < availableSteps.indexOf(currentStep)" class="text-xs text-green-600 mt-1">Complete</div>
                                     <div v-else-if="step === currentStep" class="text-xs text-blue-600 mt-1 font-medium">● Active</div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Error Display -->
-                <div v-if="Object.keys(form.errors).length > 0" class="mb-6 bg-red-50 border-l-4 border-red-500 rounded-lg shadow-md overflow-hidden">
-                    <div class="p-5">
-                        <div class="flex items-center mb-3">
-                            <div class="p-2 bg-red-100 rounded-lg mr-3">
-                                <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                </svg>
-                            </div>
-                            <h4 class="text-red-900 font-bold text-lg">Validation Errors</h4>
-                        </div>
-                        <p class="text-red-800 text-sm mb-3">Please correct the following errors before proceeding:</p>
-                        <ul class="space-y-2">
-                            <li v-for="(error, field) in form.errors" :key="field" class="flex items-start text-red-700 text-sm">
-                                <svg class="w-4 h-4 text-red-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-                                </svg>
-                                <span><strong class="font-semibold">{{ field }}:</strong> {{ error }}</span>
-                            </li>
-                        </ul>
                     </div>
                 </div>
 
@@ -334,15 +304,15 @@ const handleFileUpload = (event: Event) => {
                                 <div class="flex items-center mb-4">
                                     <div class="p-3 bg-blue-100 rounded-xl mr-4">
                                         <svg class="w-7 h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                         </svg>
                                     </div>
                                     <div>
                                         <h3 class="text-2xl font-bold text-gray-900">Case Identification</h3>
-                                        <p class="text-sm text-gray-600 mt-1">Enter basic case information and classification</p>
+                                        <p class="text-gray-600 mt-1">Enter basic case information and classification</p>
                                     </div>
                                 </div>
-                                <div class="h-1 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full"></div>
+                                <div class="h-1 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full"></div>
                             </div>
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -434,10 +404,10 @@ const handleFileUpload = (event: Event) => {
                                     </div>
                                     <div>
                                         <h3 class="text-2xl font-bold text-gray-900">Patient Information</h3>
-                                        <p class="text-sm text-gray-600 mt-1">Personal details and demographics</p>
+                                        <p class="text-gray-600 mt-1">Personal details and demographics</p>
                                     </div>
                                 </div>
-                                <div class="h-1 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full"></div>
+                                <div class="h-1 bg-gradient-to-r from-green-500 to-green-600 rounded-full"></div>
                             </div>
 
                             <div class="space-y-6">
@@ -600,24 +570,40 @@ const handleFileUpload = (event: Event) => {
                         </div>
 
                         <!-- Section C: Clinical Information -->
-                        <div v-show="currentStep === 3" class="space-y-4">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Section C: Clinical Information</h3>
+                        <div v-show="currentStep === 3" class="p-8">
+                            <div class="mb-6">
+                                <div class="flex items-center mb-4">
+                                    <div class="p-3 bg-red-100 rounded-xl mr-4">
+                                        <svg class="w-7 h-7 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-2xl font-bold text-gray-900">Clinical Information</h3>
+                                        <p class="text-gray-600 mt-1">Medical history and clinical details</p>
+                                    </div>
+                                </div>
+                                <div class="h-1 bg-gradient-to-r from-red-500 to-red-600 rounded-full"></div>
+                            </div>
 
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Date of Onset of Illness <span class="text-red-500">*</span></label>
-                                    <input v-model="form.date_of_onset" type="date" :required="shouldRequireFields" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" />
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Date of Onset of Illness <span class="text-red-500">*</span></label>
+                                    <input v-model="form.date_of_onset" type="date" :required="shouldRequireFields"
+                                           class="w-full rounded-xl border-gray-300 shadow-sm focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-all duration-200 py-3 px-4" />
                                 </div>
 
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Date of Consultation</label>
-                                    <input v-model="form.date_of_consultation" type="date" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" />
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Date of Consultation</label>
+                                    <input v-model="form.date_of_consultation" type="date"
+                                           class="w-full rounded-xl border-gray-300 shadow-sm focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-all duration-200 py-3 px-4" />
                                 </div>
                             </div>
 
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Admitting Facility</label>
-                                <select v-model="form.admitting_facility_id" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <div class="mt-6">
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Admitting Facility</label>
+                                <select v-model="form.admitting_facility_id"
+                                        class="w-full rounded-xl border-gray-300 shadow-sm focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-all duration-200 py-3 px-4">
                                     <option value="">Select Facility</option>
                                     <optgroup v-for="type in ['District Hospital', 'Provincial Hospital', 'RHU']" :key="type" :label="type">
                                         <option v-for="facility in facilities.filter(f => f.type === type)" :key="facility.id" :value="facility.id">
@@ -627,21 +613,23 @@ const handleFileUpload = (event: Event) => {
                                 </select>
                             </div>
 
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Signs and Symptoms</label>
-                                <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
+                            <div class="mt-6">
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Signs and Symptoms</label>
+                                <div class="grid grid-cols-2 md:grid-cols-3 gap-2 p-4 bg-gray-50 rounded-xl">
                                     <label v-for="symptom in commonSymptoms" :key="symptom" class="flex items-center">
-                                        <input v-model="form.signs_symptoms" type="checkbox" :value="symptom" class="mr-2 rounded" />
-                                        {{ symptom }}
+                                        <input v-model="form.signs_symptoms" type="checkbox" :value="symptom" class="mr-2 rounded text-red-600 focus:ring-red-500" />
+                                        <span class="text-sm">{{ symptom }}</span>
                                     </label>
                                 </div>
-                                <input v-model="form.signs_symptoms_other" type="text" placeholder="Other symptoms" class="mt-2 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" />
+                                <input v-model="form.signs_symptoms_other" type="text" placeholder="Other symptoms"
+                                       class="mt-3 w-full rounded-xl border-gray-300 shadow-sm focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-all duration-200 py-3 px-4" />
                             </div>
 
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Clinical Outcome</label>
-                                    <select v-model="form.clinical_outcome" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Clinical Outcome</label>
+                                    <select v-model="form.clinical_outcome"
+                                            class="w-full rounded-xl border-gray-300 shadow-sm focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-all duration-200 py-3 px-4">
                                         <option value="Alive">Alive</option>
                                         <option value="Died">Died</option>
                                         <option value="Unknown">Unknown</option>
@@ -649,30 +637,52 @@ const handleFileUpload = (event: Event) => {
                                 </div>
 
                                 <div v-if="form.clinical_outcome === 'Died'">
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Date of Death</label>
-                                    <input v-model="form.date_of_death" type="date" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" />
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Date of Death</label>
+                                    <input v-model="form.date_of_death" type="date"
+                                           class="w-full rounded-xl border-gray-300 shadow-sm focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-all duration-200 py-3 px-4" />
                                 </div>
                             </div>
 
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Complications</label>
-                                <textarea v-model="form.complications" rows="2" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
+                            <div class="mt-6">
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Complications</label>
+                                <textarea v-model="form.complications" rows="3"
+                                          class="w-full rounded-xl border-gray-300 shadow-sm focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-all duration-200 py-3 px-4"
+                                          placeholder="Describe any complications..."></textarea>
                             </div>
 
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Final Diagnosis</label>
-                                <input v-model="form.final_diagnosis" type="text" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" />
-                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Final Diagnosis</label>
+                                    <input v-model="form.final_diagnosis" type="text"
+                                           class="w-full rounded-xl border-gray-300 shadow-sm focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-all duration-200 py-3 px-4"
+                                           placeholder="Enter final diagnosis" />
+                                </div>
 
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Clinical Remarks</label>
-                                <textarea v-model="form.clinical_remarks" rows="3" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Clinical Remarks</label>
+                                    <textarea v-model="form.clinical_remarks" rows="3"
+                                              class="w-full rounded-xl border-gray-300 shadow-sm focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-all duration-200 py-3 px-4"
+                                              placeholder="Additional clinical notes..."></textarea>
+                                </div>
                             </div>
                         </div>
 
                         <!-- Section D: Laboratory Information -->
-                        <div v-show="currentStep === 4" class="space-y-4">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Section D: Laboratory Information</h3>
+                        <div v-show="currentStep === 4" class="p-8">
+                            <div class="mb-6">
+                                <div class="flex items-center mb-4">
+                                    <div class="p-3 bg-purple-100 rounded-xl mr-4">
+                                        <svg class="w-7 h-7 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-2xl font-bold text-gray-900">Laboratory Information</h3>
+                                        <p class="text-gray-600 mt-1">Test results and laboratory data</p>
+                                    </div>
+                                </div>
+                                <div class="h-1 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full"></div>
+                            </div>
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
@@ -739,42 +749,63 @@ const handleFileUpload = (event: Event) => {
                         </div>
 
                         <!-- Section E: Exposure & Travel History -->
-                        <div v-show="currentStep === 5" class="space-y-4">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Section E: Exposure & Travel History</h3>
+                        <div v-show="currentStep === 5" class="p-8">
+                            <div class="mb-6">
+                                <div class="flex items-center mb-4">
+                                    <div class="p-3 bg-orange-100 rounded-xl mr-4">
+                                        <svg class="w-7 h-7 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-2xl font-bold text-gray-900">Exposure & Travel History</h3>
+                                        <p class="text-gray-600 mt-1">Potential exposure sources and travel information</p>
+                                    </div>
+                                </div>
+                                <div class="h-1 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full"></div>
+                            </div>
 
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Place of Exposure</label>
-                                    <input v-model="form.place_of_exposure" type="text" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" />
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Place of Exposure</label>
+                                    <input v-model="form.place_of_exposure" type="text"
+                                           class="w-full rounded-xl border-gray-300 shadow-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all duration-200 py-3 px-4"
+                                           placeholder="Enter location of exposure" />
                                 </div>
 
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Date of Exposure</label>
-                                    <input v-model="form.date_of_exposure" type="date" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" />
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Date of Exposure</label>
+                                    <input v-model="form.date_of_exposure" type="date"
+                                           class="w-full rounded-xl border-gray-300 shadow-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all duration-200 py-3 px-4" />
                                 </div>
                             </div>
 
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Travel History (14 days prior)</label>
-                                <textarea v-model="form.travel_history" rows="3" placeholder="List all travel destinations in the 14 days before onset of symptoms" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
+                            <div class="mt-6">
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Travel History (14 days prior)</label>
+                                <textarea v-model="form.travel_history" rows="4"
+                                          placeholder="List all travel destinations in the 14 days before onset of symptoms"
+                                          class="w-full rounded-xl border-gray-300 shadow-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all duration-200 py-3 px-4"></textarea>
                             </div>
 
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Date of Departure</label>
-                                    <input v-model="form.travel_departure_date" type="date" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" />
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Date of Departure</label>
+                                    <input v-model="form.travel_departure_date" type="date"
+                                           class="w-full rounded-xl border-gray-300 shadow-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all duration-200 py-3 px-4" />
                                 </div>
 
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Date of Return</label>
-                                    <input v-model="form.travel_return_date" type="date" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" />
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Date of Return</label>
+                                    <input v-model="form.travel_return_date" type="date"
+                                           class="w-full rounded-xl border-gray-300 shadow-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all duration-200 py-3 px-4" />
                                 </div>
                             </div>
 
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Mode of Exposure</label>
-                                    <select v-model="form.mode_of_exposure" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Mode of Exposure</label>
+                                    <select v-model="form.mode_of_exposure"
+                                            class="w-full rounded-xl border-gray-300 shadow-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all duration-200 py-3 px-4">
                                         <option value="">Select Mode</option>
                                         <option value="Contact">Contact</option>
                                         <option value="Foodborne">Foodborne</option>
@@ -786,8 +817,9 @@ const handleFileUpload = (event: Event) => {
                                 </div>
 
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Possible Source of Infection</label>
-                                    <select v-model="form.source_of_infection" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Possible Source of Infection</label>
+                                    <select v-model="form.source_of_infection"
+                                            class="w-full rounded-xl border-gray-300 shadow-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all duration-200 py-3 px-4">
                                         <option value="">Select Source</option>
                                         <option value="Human">Human</option>
                                         <option value="Animal">Animal</option>
@@ -800,31 +832,51 @@ const handleFileUpload = (event: Event) => {
                         </div>
 
                         <!-- Section F: Contact Tracing -->
-                        <div v-show="currentStep === 6" class="space-y-4">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Section F: Contact Tracing</h3>
-
-                            <div>
-                                <label class="flex items-center">
-                                    <input v-model="form.contacts_identified" type="checkbox" class="mr-2 rounded" />
-                                    <span class="text-sm font-medium text-gray-700">Contacts Identified</span>
-                                </label>
+                        <div v-show="currentStep === 6" class="p-8">
+                            <div class="mb-6">
+                                <div class="flex items-center mb-4">
+                                    <div class="p-3 bg-indigo-100 rounded-xl mr-4">
+                                        <svg class="w-7 h-7 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-2xl font-bold text-gray-900">Contact Tracing</h3>
+                                        <p class="text-gray-600 mt-1">Identification and monitoring of contacts</p>
+                                    </div>
+                                </div>
+                                <div class="h-1 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-full"></div>
                             </div>
 
-                            <div v-if="form.contacts_identified" class="space-y-4">
+                            <div class="bg-indigo-50 p-4 rounded-xl mb-6">
+                                <label class="flex items-center cursor-pointer">
+                                    <input v-model="form.contacts_identified" type="checkbox"
+                                           class="mr-3 rounded text-indigo-600 focus:ring-indigo-500 h-5 w-5" />
+                                    <span class="text-lg font-semibold text-indigo-900">Contacts Identified</span>
+                                </label>
+                                <p class="text-sm text-indigo-700 mt-2 ml-8">Check if any contacts have been identified for this case</p>
+                            </div>
+
+                            <div v-if="form.contacts_identified" class="space-y-6">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Number of Contacts</label>
-                                    <input v-model.number="form.number_of_contacts" type="number" min="0" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" />
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Number of Contacts</label>
+                                    <input v-model.number="form.number_of_contacts" type="number" min="0"
+                                           class="w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-200 py-3 px-4"
+                                           placeholder="Enter total number of contacts" />
                                 </div>
 
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Contact Names/IDs</label>
-                                    <textarea v-model="form.contact_details" rows="3" placeholder="List contact names and identifiers" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Contact Names/IDs</label>
+                                    <textarea v-model="form.contact_details" rows="4"
+                                              placeholder="List contact names and identifiers (one per line)"
+                                              class="w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-200 py-3 px-4"></textarea>
                                 </div>
 
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Relationship to Case</label>
-                                        <select v-model="form.relationship_to_case" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                        <label class="block text-sm font-semibold text-gray-700 mb-2">Relationship to Case</label>
+                                        <select v-model="form.relationship_to_case"
+                                                class="w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-200 py-3 px-4">
                                             <option value="">Select Relationship</option>
                                             <option value="Family">Family</option>
                                             <option value="Co-worker">Co-worker</option>
@@ -836,14 +888,16 @@ const handleFileUpload = (event: Event) => {
                                     </div>
 
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Date Contacted</label>
-                                        <input v-model="form.date_contacted" type="date" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" />
+                                        <label class="block text-sm font-semibold text-gray-700 mb-2">Date Contacted</label>
+                                        <input v-model="form.date_contacted" type="date"
+                                               class="w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-200 py-3 px-4" />
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Quarantine Status</label>
-                                    <select v-model="form.quarantine_status" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Quarantine Status</label>
+                                    <select v-model="form.quarantine_status"
+                                            class="w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-200 py-3 px-4">
                                         <option value="">Select Status</option>
                                         <option value="Home">Home Quarantine</option>
                                         <option value="Facility">Facility Quarantine</option>
@@ -855,8 +909,21 @@ const handleFileUpload = (event: Event) => {
                         </div>
 
                         <!-- Section G: Reporting Information -->
-                        <div v-show="currentStep === 7" class="space-y-4">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Section G: Reporting Information</h3>
+                        <div v-show="currentStep === 7" class="p-8">
+                            <div class="mb-6">
+                                <div class="flex items-center mb-4">
+                                    <div class="p-3 bg-teal-100 rounded-xl mr-4">
+                                        <svg class="w-7 h-7 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-2xl font-bold text-gray-900">Reporting Information</h3>
+                                        <p class="text-gray-600 mt-1">Health worker and facility details</p>
+                                    </div>
+                                </div>
+                                <div class="h-1 bg-gradient-to-r from-teal-500 to-teal-600 rounded-full"></div>
+                            </div>
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>

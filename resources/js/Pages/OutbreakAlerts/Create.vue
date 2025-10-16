@@ -102,6 +102,42 @@ const submit = () => {
                         <!-- Basic Information Section -->
                         <div class="mb-8">
                             <h3 class="text-lg font-medium text-gray-900 mb-4">Basic Information</h3>
+
+                            <!-- Information Banner -->
+                            <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                <div class="flex items-start">
+                                    <div class="flex-shrink-0">
+                                        <svg class="w-5 h-5 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h4 class="text-sm font-medium text-blue-900">Data Filtering Notice</h4>
+                                        <p class="mt-1 text-sm text-blue-700">
+                                            Only diseases and municipalities with <strong>confirmed cases</strong> (validated or approved status) are available for selection.
+                                            This ensures outbreak alerts are based on verified case data.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Empty State Check for Diseases -->
+                            <div v-if="diseases.length === 0" class="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                <div class="flex items-start">
+                                    <div class="flex-shrink-0">
+                                        <svg class="w-5 h-5 text-yellow-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                        </svg>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h4 class="text-sm font-medium text-yellow-900">No Diseases Available</h4>
+                                        <p class="mt-1 text-sm text-yellow-700">
+                                            No diseases have confirmed cases available for outbreak alerts. Please ensure there are validated or approved confirmed cases in the system before creating alerts.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="space-y-4">
                                 <!-- Alert Title -->
                                 <div>
@@ -172,6 +208,24 @@ const submit = () => {
                         <!-- Location Information Section -->
                         <div class="mb-8 pb-6 border-b border-gray-200">
                             <h3 class="text-lg font-medium text-gray-900 mb-4">Location Information</h3>
+
+                            <!-- Empty State Check -->
+                            <div v-if="municipalities.length === 0" class="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                <div class="flex items-start">
+                                    <div class="flex-shrink-0">
+                                        <svg class="w-5 h-5 text-yellow-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                        </svg>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h4 class="text-sm font-medium text-yellow-900">No Municipalities Available</h4>
+                                        <p class="mt-1 text-sm text-yellow-700">
+                                            No municipalities have confirmed cases available for outbreak alerts. Only municipalities with validated or approved confirmed cases can be selected.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="space-y-4">
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <!-- Municipality -->

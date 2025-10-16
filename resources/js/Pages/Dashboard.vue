@@ -198,6 +198,13 @@ const getAutomaticAlertColor = (caseCount: number) => {
                                         >
                                             {{ alert.case_count }} cases
                                         </span>
+                                        <!-- Status Badge -->
+                                        <span
+                                            class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium"
+                                            :class="alert.status === 'published' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'"
+                                        >
+                                            {{ alert.status === 'published' ? '📢 Published' : '📝 Draft' }}
+                                        </span>
                                     </div>
                                     <p
                                         class="text-sm font-semibold mb-1"
@@ -209,7 +216,10 @@ const getAutomaticAlertColor = (caseCount: number) => {
                                         class="text-xs"
                                         :class="getAutomaticAlertColor(alert.case_count)?.text"
                                     >
-                                        {{ alert.case_count }} cases reported in the last 30 days • Threshold: {{ alert.threshold_reached }} cases
+                                        {{ alert.case_count }} cases reported in the last 7 days • Threshold: {{ alert.threshold_reached }} cases
+                                        <span v-if="alert.status === 'draft'" class="block mt-1 text-yellow-700 font-medium">
+                                            ⚠️ This is an automatic draft alert. PESU admin can review and publish for residents.
+                                        </span>
                                     </p>
                                 </div>
                             </div>
@@ -263,7 +273,7 @@ const getAutomaticAlertColor = (caseCount: number) => {
                     <!-- Enhanced Encoder Stats Cards -->
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         <!-- Total Cases Card -->
-                        <div class="group relative bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1">
+                        <Link :href="route('case-reports.index')" class="group relative bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1 cursor-pointer">
                             <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400 to-blue-600 rounded-bl-full opacity-10 group-hover:opacity-20 transition-opacity"></div>
                             <div class="p-6 relative">
                                 <div class="flex items-center justify-between mb-4">
@@ -281,10 +291,10 @@ const getAutomaticAlertColor = (caseCount: number) => {
                                 </div>
                             </div>
                             <div class="h-1 bg-gradient-to-r from-blue-400 to-blue-600"></div>
-                        </div>
+                        </Link>
 
                         <!-- Draft Cases Card -->
-                        <div class="group relative bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1">
+                        <Link :href="route('case-reports.index', { status: 'draft' })" class="group relative bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1 cursor-pointer">
                             <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-gray-400 to-gray-600 rounded-bl-full opacity-10 group-hover:opacity-20 transition-opacity"></div>
                             <div class="p-6 relative">
                                 <div class="flex items-center justify-between mb-4">
@@ -302,10 +312,10 @@ const getAutomaticAlertColor = (caseCount: number) => {
                                 </div>
                             </div>
                             <div class="h-1 bg-gradient-to-r from-gray-400 to-gray-600"></div>
-                        </div>
+                        </Link>
 
                         <!-- Submitted Card -->
-                        <div class="group relative bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1">
+                        <Link :href="route('case-reports.index', { status: 'submitted' })" class="group relative bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1 cursor-pointer">
                             <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-400 to-green-600 rounded-bl-full opacity-10 group-hover:opacity-20 transition-opacity"></div>
                             <div class="p-6 relative">
                                 <div class="flex items-center justify-between mb-4">
@@ -323,10 +333,10 @@ const getAutomaticAlertColor = (caseCount: number) => {
                                 </div>
                             </div>
                             <div class="h-1 bg-gradient-to-r from-green-400 to-green-600"></div>
-                        </div>
+                        </Link>
 
                         <!-- Returned Card -->
-                        <div class="group relative bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1">
+                        <Link :href="route('case-reports.index', { status: 'returned' })" class="group relative bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1 cursor-pointer">
                             <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-400 to-orange-600 rounded-bl-full opacity-10 group-hover:opacity-20 transition-opacity"></div>
                             <div class="p-6 relative">
                                 <div class="flex items-center justify-between mb-4">
@@ -344,7 +354,7 @@ const getAutomaticAlertColor = (caseCount: number) => {
                                 </div>
                             </div>
                             <div class="h-1 bg-gradient-to-r from-orange-400 to-orange-600"></div>
-                        </div>
+                        </Link>
                     </div>
 
                     <!-- Modern Quick Actions for Encoder -->
@@ -432,7 +442,7 @@ const getAutomaticAlertColor = (caseCount: number) => {
                     <!-- Enhanced Validator Stats Cards -->
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5">
                         <!-- Facility Cases -->
-                        <div class="group relative bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1">
+                        <Link :href="route('case-reports.index')" class="group relative bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1 cursor-pointer">
                             <div class="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-green-400 to-emerald-600 rounded-bl-full opacity-10 group-hover:opacity-20 transition-opacity"></div>
                             <div class="p-5 relative">
                                 <div class="flex items-center justify-between mb-3">
@@ -447,10 +457,10 @@ const getAutomaticAlertColor = (caseCount: number) => {
                                 <div class="text-xs text-gray-500 mt-1">All cases from facility</div>
                             </div>
                             <div class="h-1 bg-gradient-to-r from-green-400 to-emerald-600"></div>
-                        </div>
+                        </Link>
 
                         <!-- Pending Review -->
-                        <div class="group relative bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1 ring-2 ring-yellow-200">
+                        <Link :href="route('case-reports.index', { status: 'submitted' })" class="group relative bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1 ring-2 ring-yellow-200 cursor-pointer">
                             <div class="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-yellow-400 to-amber-600 rounded-bl-full opacity-10 group-hover:opacity-20 transition-opacity"></div>
                             <div class="p-5 relative">
                                 <div class="flex items-center justify-between mb-3">
@@ -466,10 +476,10 @@ const getAutomaticAlertColor = (caseCount: number) => {
                                 <div class="text-xs text-gray-500 mt-1">Awaiting validation</div>
                             </div>
                             <div class="h-1 bg-gradient-to-r from-yellow-400 to-amber-600"></div>
-                        </div>
+                        </Link>
 
                         <!-- Validated -->
-                        <div class="group relative bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1">
+                        <Link :href="route('case-reports.index', { status: 'validated' })" class="group relative bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1 cursor-pointer">
                             <div class="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-green-400 to-green-600 rounded-bl-full opacity-10 group-hover:opacity-20 transition-opacity"></div>
                             <div class="p-5 relative">
                                 <div class="flex items-center justify-between mb-3">
@@ -484,10 +494,10 @@ const getAutomaticAlertColor = (caseCount: number) => {
                                 <div class="text-xs text-gray-500 mt-1">By you</div>
                             </div>
                             <div class="h-1 bg-gradient-to-r from-green-400 to-green-600"></div>
-                        </div>
+                        </Link>
 
                         <!-- Approved -->
-                        <div class="group relative bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1">
+                        <Link :href="route('case-reports.index', { status: 'approved' })" class="group relative bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1 cursor-pointer">
                             <div class="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-purple-400 to-purple-600 rounded-bl-full opacity-10 group-hover:opacity-20 transition-opacity"></div>
                             <div class="p-5 relative">
                                 <div class="flex items-center justify-between mb-3">
@@ -502,10 +512,10 @@ const getAutomaticAlertColor = (caseCount: number) => {
                                 <div class="text-xs text-gray-500 mt-1">Final approval</div>
                             </div>
                             <div class="h-1 bg-gradient-to-r from-purple-400 to-purple-600"></div>
-                        </div>
+                        </Link>
 
                         <!-- Returned -->
-                        <div class="group relative bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1">
+                        <Link :href="route('case-reports.index', { status: 'returned' })" class="group relative bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1 cursor-pointer">
                             <div class="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-orange-400 to-orange-600 rounded-bl-full opacity-10 group-hover:opacity-20 transition-opacity"></div>
                             <div class="p-5 relative">
                                 <div class="flex items-center justify-between mb-3">
@@ -520,7 +530,7 @@ const getAutomaticAlertColor = (caseCount: number) => {
                                 <div class="text-xs text-gray-500 mt-1">For correction</div>
                             </div>
                             <div class="h-1 bg-gradient-to-r from-orange-400 to-orange-600"></div>
-                        </div>
+                        </Link>
                     </div>
 
                     <!-- Modern Validator Quick Actions -->
@@ -653,7 +663,7 @@ const getAutomaticAlertColor = (caseCount: number) => {
                     <!-- Modern PESU Admin Stats Grid -->
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
                         <!-- Provincial Total -->
-                        <div class="group bg-white overflow-hidden shadow-xl rounded-2xl p-6 border-l-4 border-blue-500 hover:shadow-2xl transition-all duration-300 transform hover:translate-y-[-4px]">
+                        <Link :href="route('case-reports.index')" class="group bg-white overflow-hidden shadow-xl rounded-2xl p-6 border-l-4 border-blue-500 hover:shadow-2xl transition-all duration-300 transform hover:translate-y-[-4px] cursor-pointer">
                             <div class="flex items-start justify-between">
                                 <div class="flex-1">
                                     <div class="flex items-center space-x-2 mb-2">
@@ -670,10 +680,10 @@ const getAutomaticAlertColor = (caseCount: number) => {
                                     <div class="text-xs text-gray-500 font-medium">All cases</div>
                                 </div>
                             </div>
-                        </div>
+                        </Link>
 
                         <!-- Pending -->
-                        <div class="group bg-white overflow-hidden shadow-xl rounded-2xl p-6 border-l-4 border-yellow-500 hover:shadow-2xl transition-all duration-300 transform hover:translate-y-[-4px]">
+                        <Link :href="route('case-reports.index', { status: 'submitted' })" class="group bg-white overflow-hidden shadow-xl rounded-2xl p-6 border-l-4 border-yellow-500 hover:shadow-2xl transition-all duration-300 transform hover:translate-y-[-4px] cursor-pointer">
                             <div class="flex items-start justify-between">
                                 <div class="flex-1">
                                     <div class="flex items-center space-x-2 mb-2">
@@ -690,10 +700,10 @@ const getAutomaticAlertColor = (caseCount: number) => {
                                     <div class="text-xs text-gray-500 font-medium">Submitted</div>
                                 </div>
                             </div>
-                        </div>
+                        </Link>
 
                         <!-- Validated -->
-                        <div class="group bg-white overflow-hidden shadow-xl rounded-2xl p-6 border-l-4 border-green-500 hover:shadow-2xl transition-all duration-300 transform hover:translate-y-[-4px]">
+                        <Link :href="route('case-reports.index', { status: 'validated' })" class="group bg-white overflow-hidden shadow-xl rounded-2xl p-6 border-l-4 border-green-500 hover:shadow-2xl transition-all duration-300 transform hover:translate-y-[-4px] cursor-pointer">
                             <div class="flex items-start justify-between">
                                 <div class="flex-1">
                                     <div class="flex items-center space-x-2 mb-2">
@@ -710,10 +720,10 @@ const getAutomaticAlertColor = (caseCount: number) => {
                                     <div class="text-xs text-gray-500 font-medium">By validators</div>
                                 </div>
                             </div>
-                        </div>
+                        </Link>
 
                         <!-- Approved -->
-                        <div class="group bg-white overflow-hidden shadow-xl rounded-2xl p-6 border-l-4 border-purple-500 hover:shadow-2xl transition-all duration-300 transform hover:translate-y-[-4px]">
+                        <Link :href="route('case-reports.index', { status: 'approved' })" class="group bg-white overflow-hidden shadow-xl rounded-2xl p-6 border-l-4 border-purple-500 hover:shadow-2xl transition-all duration-300 transform hover:translate-y-[-4px] cursor-pointer">
                             <div class="flex items-start justify-between">
                                 <div class="flex-1">
                                     <div class="flex items-center space-x-2 mb-2">
@@ -730,10 +740,10 @@ const getAutomaticAlertColor = (caseCount: number) => {
                                     <div class="text-xs text-gray-500 font-medium">Final approval</div>
                                 </div>
                             </div>
-                        </div>
+                        </Link>
 
                         <!-- Drafts -->
-                        <div class="group bg-white overflow-hidden shadow-xl rounded-2xl p-6 border-l-4 border-gray-500 hover:shadow-2xl transition-all duration-300 transform hover:translate-y-[-4px]">
+                        <Link :href="route('case-reports.index', { status: 'draft' })" class="group bg-white overflow-hidden shadow-xl rounded-2xl p-6 border-l-4 border-gray-500 hover:shadow-2xl transition-all duration-300 transform hover:translate-y-[-4px] cursor-pointer">
                             <div class="flex items-start justify-between">
                                 <div class="flex-1">
                                     <div class="flex items-center space-x-2 mb-2">
@@ -750,10 +760,10 @@ const getAutomaticAlertColor = (caseCount: number) => {
                                     <div class="text-xs text-gray-500 font-medium">Incomplete</div>
                                 </div>
                             </div>
-                        </div>
+                        </Link>
 
                         <!-- Returned -->
-                        <div class="group bg-white overflow-hidden shadow-xl rounded-2xl p-6 border-l-4 border-orange-500 hover:shadow-2xl transition-all duration-300 transform hover:translate-y-[-4px]">
+                        <Link :href="route('case-reports.index', { status: 'returned' })" class="group bg-white overflow-hidden shadow-xl rounded-2xl p-6 border-l-4 border-orange-500 hover:shadow-2xl transition-all duration-300 transform hover:translate-y-[-4px] cursor-pointer">
                             <div class="flex items-start justify-between">
                                 <div class="flex-1">
                                     <div class="flex items-center space-x-2 mb-2">
@@ -770,7 +780,7 @@ const getAutomaticAlertColor = (caseCount: number) => {
                                     <div class="text-xs text-gray-500 font-medium">For correction</div>
                                 </div>
                             </div>
-                        </div>
+                        </Link>
                     </div>
 
                     <!-- Modern PESU Admin Action Cards -->
