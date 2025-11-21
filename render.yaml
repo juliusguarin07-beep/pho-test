@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: pho-backend
+    runtime: php
+    buildCommand: composer install && php artisan migrate --force
+    startCommand: php artisan serve --host 0.0.0.0 --port 8080
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        value: base64:PByk6w5h9U2XutcuA7eWn8W2J+4KxWN6VNrzR0E6H70=
+      - key: DB_CONNECTION
+        value: sqlite
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://pho-test-hncv.vercel.app
