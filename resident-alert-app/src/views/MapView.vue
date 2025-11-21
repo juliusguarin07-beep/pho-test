@@ -1,9 +1,9 @@
 <template>
   <div class="flex flex-col h-full">
     <!-- Header -->
-    <header class="bg-primary-600 text-white px-4 py-4 shadow-lg z-50">
-      <h1 class="text-xl font-bold">Alert Map</h1>
-      <p class="text-primary-100 text-sm">Outbreak locations across Pangasinan</p>
+    <header class="bg-white text-gray-900 px-4 py-4 shadow-sm border-b border-gray-200 z-50">
+      <h1 class="text-xl font-bold text-gray-900">Alert Map</h1>
+      <p class="text-gray-600 text-sm">Outbreak locations across Pangasinan</p>
     </header>
 
     <!-- Legend -->
@@ -181,18 +181,16 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
-import { useRouter } from 'vue-router'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { useAlertStore } from '@/stores/alert'
 import type { MapAlert } from '@/types'
 
-const router = useRouter()
 const alertStore = useAlertStore()
 
 const mapContainer = ref<HTMLElement | null>(null)
 const map = ref<L.Map | null>(null)
-const markers = ref<L.Marker[]>([])
+const markers = ref<Array<L.Marker<any>>>([])
 const selectedMunicipality = ref<string | null>(null)
 const activeFilters = ref<string[]>([])
 
@@ -423,7 +421,7 @@ const initMap = () => {
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors',
       maxZoom: 16
-    }).addTo(map.value)
+    }).addTo(map.value as L.Map)
 
     console.log('Map initialized successfully with Pangasinan bounds')
   } catch (error) {
@@ -489,13 +487,13 @@ const updateMarkers = () => {
   // Add new markers using filtered data
   filteredMapData.value.forEach((alert) => {
     const marker = createMarker(alert)
-    marker.addTo(map.value!)
+    marker.addTo(map.value as L.Map)
     markers.value.push(marker)
   })
 
   // Fit bounds if there are markers
   if (markers.value.length > 0) {
-    const group = L.featureGroup(markers.value)
+    const group = L.featureGroup(markers.value as any)
     const bounds = group.getBounds()
 
     if (markers.value.length === 1) {

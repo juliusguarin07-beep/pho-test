@@ -29,12 +29,12 @@ class CaseReportController extends Controller
             // Encoders see only their own reports
             $query->where('reported_by', $user->id);
         } elseif ($user->hasRole('validator')) {
-            // Validators see reports from their facility (except drafts)
-            if ($user->facility_id) {
-                $query->where('reporting_facility_id', $user->facility_id)
-                      ->whereIn('status', ['submitted', 'validated', 'returned', 'approved']);
+            // Validators see reports from their municipality (except drafts)
+            if ($user->municipality_id) {
+                $query->where('municipality_id', $user->municipality_id)
+                      ->whereIn('status', ['submitted', 'returned', 'approved']);
             } else {
-                // If validator has no facility, show no reports
+                // If validator has no municipality, show no reports
                 $query->where('id', 0);
             }
         } elseif ($user->hasRole('pesu_admin')) {
@@ -335,9 +335,9 @@ class CaseReportController extends Controller
                 abort(403, 'Unauthorized access to this case report.');
             }
         } elseif ($user->hasRole('validator')) {
-            // Validators can only view reports from their facility
-            if ($user->facility_id && $caseReport->reporting_facility_id !== $user->facility_id) {
-                abort(403, 'You can only view reports from your facility.');
+            // Validators can only view reports from their municipality
+            if ($user->municipality_id && $caseReport->municipality_id !== $user->municipality_id) {
+                abort(403, 'You can only view reports from your municipality.');
             }
         }
         // PESU admins can view all reports
@@ -583,9 +583,9 @@ class CaseReportController extends Controller
             return redirect()->back()->with('error', 'Unauthorized action.');
         }
 
-        // Check if the case is from the validator's facility
-        if ($user->facility_id && $caseReport->reporting_facility_id !== $user->facility_id) {
-            return redirect()->back()->with('error', 'You can only validate reports from your facility.');
+        // Check if the case is from the validator's municipality
+        if ($user->municipality_id && $caseReport->municipality_id !== $user->municipality_id) {
+            return redirect()->back()->with('error', 'You can only validate reports from your municipality.');
         }
 
         // Check if status is submitted
@@ -596,11 +596,13 @@ class CaseReportController extends Controller
         // Store original classification for audit log
         $originalClassification = $caseReport->case_classification;
 
-        // Prepare update data
+        // Prepare update data - now set status directly to 'approved' instead of 'validated'
         $updateData = [
-            'status' => 'validated',
+            'status' => 'approved',
             'validated_by' => $user->id,
             'validated_at' => now(),
+            'approved_by' => $user->id,
+            'approved_at' => now(),
         ];
 
         // If case classification is "Suspect", automatically change to "Confirmed" upon validation
@@ -611,7 +613,7 @@ class CaseReportController extends Controller
         // Update the case report
         $caseReport->update($updateData);
 
-        // Create detailed audit log
+        // Create detailed audit log for validation
         $auditDescription = "Case Report {$caseReport->case_id} validated by {$user->name}";
         if ($originalClassification === 'Suspect' && $caseReport->case_classification === 'Confirmed') {
             $auditDescription .= ". Case classification automatically updated from Suspect to Confirmed.";
@@ -625,12 +627,21 @@ class CaseReportController extends Controller
             'description' => $auditDescription,
         ]);
 
+        // Create audit log for automatic approval
+        \App\Models\AuditLog::create([
+            'user_id' => $user->id,
+            'action' => 'Case Report Auto-Approved',
+            'model_type' => 'CaseReport',
+            'model_id' => $caseReport->id,
+            'description' => "Case Report {$caseReport->case_id} automatically approved by system after validation",
+        ]);
+
         // Check for automatic outbreak alerts after validation
         $alertService = new \App\Services\OutbreakAlertService();
         $alertService->checkAndGenerateAlerts($caseReport->disease_id, $caseReport->municipality_id);
 
         // Prepare success message
-        $successMessage = "Case Report {$caseReport->case_id} has been validated and sent to PESU for approval.";
+        $successMessage = "Case Report {$caseReport->case_id} has been validated and automatically approved by the system.";
         if ($originalClassification === 'Suspect') {
             $successMessage .= " Case classification has been automatically updated from Suspect to Confirmed.";
         }
@@ -695,9 +706,9 @@ class CaseReportController extends Controller
             return redirect()->back()->with('error', 'Unauthorized action.');
         }
 
-        // Check if the case is from the validator's facility
-        if ($user->facility_id && $caseReport->reporting_facility_id !== $user->facility_id) {
-            return redirect()->back()->with('error', 'You can only return reports from your facility.');
+        // Check if the case is from the validator's municipality
+        if ($user->municipality_id && $caseReport->municipality_id !== $user->municipality_id) {
+            return redirect()->back()->with('error', 'You can only return reports from your municipality.');
         }
 
         // Check if status is submitted

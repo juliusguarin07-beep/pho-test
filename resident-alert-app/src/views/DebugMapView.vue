@@ -47,11 +47,12 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { alertService } from '@/services/api'
+import type { MapAlert } from '@/types'
 
 const loading = ref(false)
 const error = ref('')
-const rawData = ref(null)
-const mapData = ref([])
+const rawData = ref<any>(null)
+const mapData = ref<MapAlert[]>([])
 
 const loadData = async () => {
   loading.value = true

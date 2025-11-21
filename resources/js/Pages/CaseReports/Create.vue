@@ -253,7 +253,7 @@ const handleFileUpload = (event: Event) => {
 
                         <!-- Steps -->
                         <div class="relative flex justify-between">
-                            <div v-for="step in availableSteps" :key="step" class="flex flex-col items-center">
+                            <div v-for="step in availableSteps" :key="step" class="flex flex-col items-center group/step">
                                 <!-- Step Circle -->
                                 <div :class="[
                                     'w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 relative z-10 cursor-pointer hover:scale-105',
@@ -268,6 +268,22 @@ const handleFileUpload = (event: Event) => {
                                         </svg>
                                     </span>
                                     <span v-else>{{ step }}</span>
+
+                                    <!-- Tooltip -->
+                                    <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 invisible group-hover/step:opacity-100 group-hover/step:visible transition-all duration-200 pointer-events-none z-50">
+                                        <div class="bg-gray-900 text-white text-xs font-semibold rounded-lg px-3 py-2 whitespace-nowrap shadow-lg">
+                                            {{
+                                                step === 1 ? 'Case Identification' :
+                                                step === 2 ? 'Patient Information' :
+                                                step === 3 ? 'Clinical Assessment' :
+                                                step === 4 ? 'Laboratory Results' :
+                                                step === 5 ? 'Exposure History' :
+                                                step === 6 ? 'Contact Tracing' :
+                                                'Reporting Details'
+                                            }}
+                                            <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <!-- Step Label -->
@@ -509,19 +525,14 @@ const handleFileUpload = (event: Event) => {
                                             Municipality <span class="text-red-500">*</span>
                                         </label>
                                         <select v-model="form.municipality_id" :required="shouldRequireFields"
-                                                :disabled="isEncoder"
-                                                :class="{
-                                                    'w-full rounded-xl border-gray-300 shadow-sm focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all duration-200 py-3 px-4': true,
-                                                    'bg-gray-100 cursor-not-allowed': isEncoder,
-                                                    'hover:bg-gray-50': !isEncoder
-                                                }">
+                                                class="w-full rounded-xl border-gray-300 shadow-sm focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all duration-200 py-3 px-4">
                                             <option value="">Select Municipality</option>
                                             <option v-for="municipality in municipalities" :key="municipality.id" :value="municipality.id">
                                                 {{ municipality.name }}
                                             </option>
                                         </select>
                                         <p v-if="isEncoder" class="mt-1 text-xs text-gray-500">
-                                            Auto-filled based on your assigned municipality
+                                            Case will be routed to the validator of the selected municipality
                                         </p>
                                     </div>
 

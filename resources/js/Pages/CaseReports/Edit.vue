@@ -631,7 +631,7 @@ const submitForm = () => {
                                             </option>
                                         </select>
                                         <p v-if="isEncoder" class="mt-1 text-xs text-gray-500">
-                                            Municipality cannot be changed for existing case reports
+                                            Municipality is locked. Case is routed to the validator of this municipality
                                         </p>
                                     </div>
 

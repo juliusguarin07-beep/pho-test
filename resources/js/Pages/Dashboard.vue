@@ -478,24 +478,6 @@ const getAutomaticAlertColor = (caseCount: number) => {
                             <div class="h-1 bg-gradient-to-r from-yellow-400 to-amber-600"></div>
                         </Link>
 
-                        <!-- Validated -->
-                        <Link :href="route('case-reports.index', { status: 'validated' })" class="group relative bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1 cursor-pointer">
-                            <div class="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-green-400 to-green-600 rounded-bl-full opacity-10 group-hover:opacity-20 transition-opacity"></div>
-                            <div class="p-5 relative">
-                                <div class="flex items-center justify-between mb-3">
-                                    <div class="p-2.5 bg-green-100 rounded-lg">
-                                        <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                    </div>
-                                </div>
-                                <h3 class="text-gray-600 text-xs font-medium mb-1 uppercase tracking-wide">Validated</h3>
-                                <div class="text-3xl font-extrabold text-green-600">{{ statistics.validated_cases }}</div>
-                                <div class="text-xs text-gray-500 mt-1">By you</div>
-                            </div>
-                            <div class="h-1 bg-gradient-to-r from-green-400 to-green-600"></div>
-                        </Link>
-
                         <!-- Approved -->
                         <Link :href="route('case-reports.index', { status: 'approved' })" class="group relative bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1 cursor-pointer">
                             <div class="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-purple-400 to-purple-600 rounded-bl-full opacity-10 group-hover:opacity-20 transition-opacity"></div>
@@ -503,13 +485,13 @@ const getAutomaticAlertColor = (caseCount: number) => {
                                 <div class="flex items-center justify-between mb-3">
                                     <div class="p-2.5 bg-purple-100 rounded-lg">
                                         <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                         </svg>
                                     </div>
                                 </div>
                                 <h3 class="text-gray-600 text-xs font-medium mb-1 uppercase tracking-wide">Approved</h3>
-                                <div class="text-3xl font-extrabold text-purple-600">{{ statistics.approved_cases }}</div>
-                                <div class="text-xs text-gray-500 mt-1">Final approval</div>
+                                <div class="text-3xl font-extrabold text-purple-600">{{ statistics.validated_cases }}</div>
+                                <div class="text-xs text-gray-500 mt-1">By you</div>
                             </div>
                             <div class="h-1 bg-gradient-to-r from-purple-400 to-purple-600"></div>
                         </Link>
@@ -702,8 +684,8 @@ const getAutomaticAlertColor = (caseCount: number) => {
                             </div>
                         </Link>
 
-                        <!-- Validated -->
-                        <Link :href="route('case-reports.index', { status: 'validated' })" class="group bg-white overflow-hidden shadow-xl rounded-2xl p-6 border-l-4 border-green-500 hover:shadow-2xl transition-all duration-300 transform hover:translate-y-[-4px] cursor-pointer">
+                        <!-- Approved by Validators -->
+                        <Link :href="route('case-reports.index', { status: 'approved' })" class="group bg-white overflow-hidden shadow-xl rounded-2xl p-6 border-l-4 border-green-500 hover:shadow-2xl transition-all duration-300 transform hover:translate-y-[-4px] cursor-pointer">
                             <div class="flex items-start justify-between">
                                 <div class="flex-1">
                                     <div class="flex items-center space-x-2 mb-2">
@@ -713,7 +695,7 @@ const getAutomaticAlertColor = (caseCount: number) => {
                                             </svg>
                                         </div>
                                     </div>
-                                    <div class="text-sm font-bold text-gray-500 uppercase tracking-wide mb-1">Validated</div>
+                                    <div class="text-sm font-bold text-gray-500 uppercase tracking-wide mb-1">Approved</div>
                                     <div class="text-4xl font-extrabold text-green-600 mb-2">
                                         {{ statistics.validated_cases }}
                                     </div>

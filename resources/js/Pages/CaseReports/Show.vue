@@ -658,17 +658,7 @@ const returnReport = () => {
                                 Return Report
                             </button>
 
-                            <!-- PESU Admin Actions -->
-                            <button
-                                v-if="isPesuAdmin && caseReport.status === 'validated'"
-                                @click="approveReport"
-                                class="flex items-center px-4 py-2 text-white transition bg-purple-600 rounded-lg hover:bg-purple-700"
-                            >
-                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                </svg>
-                                Approve Report
-                            </button>
+
                         </div>
 
                         <div class="flex space-x-3">

@@ -6,8 +6,21 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
-    @apply bg-gray-50 text-gray-900 font-sans;
+    @apply bg-gradient-to-br from-slate-50 to-gray-100 text-gray-900 font-sans;
+  }
+
+  /* Elegant typography */
+  h1 {
+    @apply tracking-tight;
+  }
+
+  h2, h3 {
+    @apply tracking-tight;
   }
 }
 
@@ -17,7 +30,7 @@
   }
 
   .btn-primary {
-    @apply btn bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500;
+    @apply btn bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500;
   }
 
   .btn-secondary {
@@ -25,60 +38,92 @@
   }
 
   .card {
-    @apply bg-white rounded-xl shadow-md p-4;
+    @apply bg-white/70 backdrop-blur-sm rounded-lg border border-gray-200/50 p-4;
   }
 
   .alert-badge {
-    @apply px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide;
+    @apply px-3 py-1 rounded-full text-xs font-semibold;
   }
 
   .alert-badge-red {
-    @apply alert-badge bg-red-100 text-red-800 ring-2 ring-red-200;
+    @apply alert-badge bg-red-100/80 text-red-700 backdrop-blur-sm;
   }
 
   .alert-badge-orange {
-    @apply alert-badge bg-orange-100 text-orange-800 ring-2 ring-orange-200;
+    @apply alert-badge bg-orange-100/80 text-orange-700 backdrop-blur-sm;
   }
 
   .alert-badge-yellow {
-    @apply alert-badge bg-yellow-100 text-yellow-800 ring-2 ring-yellow-200;
+    @apply alert-badge bg-amber-100/80 text-amber-700 backdrop-blur-sm;
   }
 
   .alert-badge-green {
-    @apply alert-badge bg-green-100 text-green-800 ring-2 ring-green-200;
+    @apply alert-badge bg-emerald-100/80 text-emerald-700 backdrop-blur-sm;
   }
 }
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-gray-100;
+  @apply bg-gray-100/50;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-gray-400 rounded-full;
+  @apply bg-gray-400/70 rounded-full hover:bg-gray-500;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-gray-500;
+  @apply bg-gray-600;
 }
 
-/* Loading spinner */
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* No scrollbar styles - hide by default */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Loading spinner with elegant color */
 .spinner {
-  border: 3px solid rgba(0, 0, 0, 0.1);
-  border-left-color: #10b981;
+  border: 3px solid rgba(0, 0, 0, 0.08);
+  border-top-color: #3b82f6;
+  border-right-color: #3b82f6;
   border-radius: 50%;
   width: 40px;
   height: 40px;
-  animation: spin 1s linear infinite;
+  animation: spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
 @keyframes spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* Elegant transitions and hover effects */
+@layer utilities {
+  .transition-smooth {
+    @apply transition-all duration-300 ease-out;
+  }
+
+  .backdrop-blur-sm {
+    backdrop-filter: blur(4px);
+  }
+
+  .hover-lift {
+    @apply hover:shadow-lg hover:-translate-y-1 transition-all duration-200;
   }
 }
 

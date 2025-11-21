@@ -1,39 +1,41 @@
 <template>
   <div class="min-h-screen bg-gray-50">
     <!-- Header -->
-    <header class="bg-gradient-to-r from-primary-600 to-primary-700 text-white px-4 py-6">
-      <h1 class="text-2xl font-bold">Settings</h1>
-      <p class="text-primary-100 text-sm mt-1">Customize your alert preferences</p>
+    <header class="bg-white border-b border-gray-200">
+      <div class="px-4 py-4">
+        <h1 class="text-2xl font-bold text-gray-900">Settings</h1>
+        <p class="text-gray-500 text-sm mt-0.5">Manage your preferences</p>
+      </div>
     </header>
 
     <!-- Settings Content -->
-    <div class="px-4 py-6 space-y-4">
+    <div class="px-4 py-6 space-y-5 pb-24">
 
       <!-- Location Settings -->
-      <div class="card">
-        <h2 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-          <svg class="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-          </svg>
-          Location Filter
-        </h2>
-        <p class="text-sm text-gray-600 mb-4">Select your location to see relevant alerts</p>
+      <section class="bg-white rounded-xl border border-gray-200 p-4">
+        <div class="flex items-center gap-2 mb-4">
+          <div class="bg-blue-100 rounded-lg p-2">
+            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            </svg>
+          </div>
+          <div>
+            <h2 class="font-bold text-gray-900">Location</h2>
+            <p class="text-xs text-gray-500 mt-0.5">Choose your area</p>
+          </div>
+        </div>
 
         <!-- Municipality Select -->
         <div class="mb-4">
           <label class="block text-sm font-semibold text-gray-700 mb-2">Municipality</label>
-
-          <!-- Loading state -->
-          <div v-if="municipalities.length === 0" class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-500">
-            Loading municipalities...
+          <div v-if="municipalities.length === 0" class="w-full px-4 py-3 bg-gray-50 rounded-lg text-gray-500 text-sm">
+            Loading...
           </div>
-
-          <!-- Municipality dropdown -->
           <select
             v-else
             v-model="selectedMunicipality"
             @change="onMunicipalityChange"
-            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
           >
             <option :value="null">All Municipalities</option>
             <option
@@ -44,21 +46,16 @@
               {{ municipality.name }}
             </option>
           </select>
-
-          <!-- Debug info -->
-          <p class="text-xs text-gray-500 mt-1">
-            {{ municipalities.length }} municipalities available
-          </p>
         </div>
 
         <!-- Barangay Select -->
         <div>
-          <label class="block text-sm font-semibold text-gray-700 mb-2">Barangay</label>
+          <label class="block text-sm font-semibold text-gray-700 mb-2">Barangay (Optional)</label>
           <select
             v-model="selectedBarangay"
             @change="onBarangayChange"
             :disabled="!selectedMunicipality"
-            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:cursor-not-allowed transition-colors"
           >
             <option :value="null">
               {{ selectedMunicipality ? 'All Barangays' : 'Select municipality first' }}
@@ -71,119 +68,98 @@
               {{ barangay.name }}
             </option>
           </select>
-          <p class="text-xs text-gray-500 mt-2">
-            Select a municipality first to choose a barangay
-          </p>
         </div>
 
         <!-- Current Selection Display -->
-        <div v-if="selectedMunicipality || selectedBarangay" class="mt-4 p-3 bg-primary-50 rounded-lg border border-primary-200">
+        <div v-if="selectedMunicipality || selectedBarangay" class="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
           <div class="text-sm">
-            <span class="font-semibold text-primary-900">Filtering alerts for:</span>
-            <div class="mt-1 text-primary-700">
+            <span class="font-semibold text-blue-900">Active Filter:</span>
+            <div class="mt-2 text-blue-800 font-medium">
               {{ selectedMunicipality ? municipalities.find(m => m.id === selectedMunicipality)?.name : 'All Areas' }}
-              <span v-if="selectedBarangay">
-                → {{ filteredBarangays.find(b => b.id === selectedBarangay)?.name }}
+              <span v-if="selectedBarangay" class="block text-xs text-blue-700 mt-1">
+                └─ {{ filteredBarangays.find(b => b.id === selectedBarangay)?.name }}
               </span>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
       <!-- Notification Settings -->
-      <div class="card">
-        <h2 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-          <svg class="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-          </svg>
-          Notifications
-        </h2>
+      <section class="bg-white rounded-xl border border-gray-200 p-4">
         <div class="flex items-center justify-between">
-          <div class="flex-1">
-            <div class="font-semibold text-gray-900">Push Notifications</div>
-            <div class="text-sm text-gray-600 mt-1">Receive alerts for new outbreaks</div>
+          <div class="flex items-center gap-3 flex-1">
+            <div class="bg-orange-100 rounded-lg p-2">
+              <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+            </div>
+            <div>
+              <h3 class="font-bold text-gray-900">Push Notifications</h3>
+              <p class="text-xs text-gray-500 mt-0.5">Get alerts when outbreaks occur</p>
+            </div>
           </div>
           <button
             @click="toggleNotifications"
             :class="[
               'relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200',
-              notificationsEnabled ? 'bg-primary-600' : 'bg-gray-200'
+              notificationsEnabled ? 'bg-green-500' : 'bg-gray-300'
             ]"
           >
             <span
               :class="[
                 'inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200',
-                notificationsEnabled ? 'translate-x-6' : 'translate-x-1'
+                notificationsEnabled ? 'translate-x-5.5' : 'translate-x-1'
               ]"
             />
           </button>
         </div>
-        <div v-if="!notificationsEnabled" class="mt-3 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-          <p class="text-sm text-yellow-800">
-            ⚠️ You won't receive urgent outbreak alerts. Enable notifications to stay informed.
-          </p>
-        </div>
-      </div>
+      </section>
 
       <!-- About Section -->
-      <div class="card bg-gradient-to-br from-primary-50 to-blue-50 border border-primary-200">
-        <h2 class="text-lg font-bold text-primary-900 mb-3">About PHO Alert</h2>
-        <p class="text-sm text-primary-800 leading-relaxed mb-4">
-          The Provincial Health Office Alert System provides real-time outbreak alerts and health advisories to keep Pangasinan residents informed and safe.
+      <section class="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl border border-blue-200 p-4">
+        <div class="flex items-center gap-2 mb-3">
+          <div class="text-xl">ℹ️</div>
+          <h2 class="font-bold text-blue-900">About PHO Alert</h2>
+        </div>
+        <p class="text-sm text-blue-800 leading-relaxed mb-4">
+          Stay informed about health outbreaks in Pangasinan with real-time alerts and important health advisories.
         </p>
-        <div class="space-y-2 text-sm text-primary-700">
-          <div class="flex items-center gap-2">
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-            </svg>
-            <span>Real-time outbreak alerts</span>
+        <div class="grid grid-cols-2 gap-2">
+          <div class="flex items-start gap-2 text-xs text-blue-700">
+            <span class="mt-0.5">✓</span>
+            <span>Real-time alerts</span>
           </div>
-          <div class="flex items-center gap-2">
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-            </svg>
-            <span>Interactive disease map</span>
+          <div class="flex items-start gap-2 text-xs text-blue-700">
+            <span class="mt-0.5">✓</span>
+            <span>Disease tracking</span>
           </div>
-          <div class="flex items-center gap-2">
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-            </svg>
-            <span>Prevention guidelines</span>
+          <div class="flex items-start gap-2 text-xs text-blue-700">
+            <span class="mt-0.5">✓</span>
+            <span>Health guidelines</span>
           </div>
-          <div class="flex items-center gap-2">
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-            </svg>
+          <div class="flex items-start gap-2 text-xs text-blue-700">
+            <span class="mt-0.5">✓</span>
             <span>Emergency contacts</span>
           </div>
         </div>
-      </div>
+      </section>
 
-      <!-- Version & Privacy -->
-      <div class="card text-center">
-        <p class="text-sm text-gray-600 mb-2">
+      <!-- App Info -->
+      <section class="bg-white rounded-xl border border-gray-200 p-4 text-center">
+        <p class="text-xs text-gray-600">
           <span class="font-semibold">Version:</span> 1.0.0
         </p>
-        <p class="text-xs text-gray-500">
-          © 2025 Provincial Health Office - Pangasinan
+        <p class="text-xs text-gray-500 mt-1">
+          © 2025 Provincial Health Office
         </p>
-        <div class="mt-3 pt-3 border-t border-gray-200">
-          <button class="text-sm text-primary-600 font-semibold hover:text-primary-700">
-            Privacy Policy
-          </button>
-          <span class="mx-2 text-gray-300">•</span>
-          <button class="text-sm text-primary-600 font-semibold hover:text-primary-700">
-            Terms of Service
-          </button>
-        </div>
-      </div>
+      </section>
 
       <!-- Reset Button -->
       <button
         @click="resetSettings"
-        class="w-full py-3 bg-red-50 text-red-700 font-semibold rounded-lg hover:bg-red-100 transition-colors border border-red-200"
+        class="w-full py-3 bg-red-50 text-red-700 font-semibold rounded-xl hover:bg-red-100 transition-colors border border-red-200 text-sm"
       >
-        Reset All Settings
+        Reset Settings
       </button>
     </div>
   </div>
@@ -216,7 +192,6 @@ const toggleNotifications = () => {
   settingsStore.setNotificationsEnabled(notificationsEnabled.value)
 
   if (notificationsEnabled.value) {
-    // Request notification permission
     if ('Notification' in window && Notification.permission === 'default') {
       Notification.requestPermission()
     }
@@ -224,7 +199,7 @@ const toggleNotifications = () => {
 }
 
 const resetSettings = () => {
-  if (confirm('Are you sure you want to reset all settings? This will clear your location and preferences.')) {
+  if (confirm('Reset all settings? Your preferences will be cleared.')) {
     settingsStore.resetSettings()
     loadSettings()
   }
@@ -237,15 +212,10 @@ const loadSettings = () => {
 }
 
 onMounted(async () => {
-  // Ensure municipalities are loaded
   if (settingsStore.municipalities.length === 0) {
     await settingsStore.fetchMunicipalities()
   }
-
-  // Load user settings
   loadSettings()
-
-  // If user has a selected municipality but no barangays loaded, fetch them
   if (selectedMunicipality.value && settingsStore.filteredBarangays.length === 0) {
     await settingsStore.fetchBarangays(selectedMunicipality.value)
   }
