@@ -4,9 +4,6 @@
   "devCommand": "cd resident-alert-app && npm run dev",
   "framework": "vite",
   "outputDirectory": "resident-alert-app/dist",
-  "env": {
-    "VITE_API_URL": "@vite_api_url"
-  },
   "headers": [
     {
       "source": "/(.*)",
