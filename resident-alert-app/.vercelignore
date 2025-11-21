@@ -1,0 +1,16 @@
+.git
+.gitignore
+README.md
+VERCEL_DEPLOY.md
+node_modules
+npm-debug.log
+.DS_Store
+.env.local
+.env.*.local
+dist
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.turbo

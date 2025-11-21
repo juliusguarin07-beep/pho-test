@@ -103,5 +103,21 @@ export default defineConfig({
     host: true, // Listen on all network interfaces
     port: 5173,
     strictPort: true
+  },
+  build: {
+    target: 'esnext',
+    minify: 'terser',
+    cssCodeSplit: true,
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vue': ['vue'],
+          'router': ['vue-router'],
+          'pinia': ['pinia'],
+          'leaflet': ['leaflet']
+        }
+      }
+    }
   }
 })
